@@ -1,9 +1,12 @@
 import { COOKIE_NAME, getSession } from '@/lib/auth'
+import { initDb } from '@/lib/db/db'
 import { getUserById } from '@/lib/db/json-db'
 import { NextResponse } from 'next/server'
 
 export async function GET(request: Request) {
   try {
+    // Initialize database
+    await initDb()
     const cookieHeader = request.headers.get('Cookie') || ''
     const cookies = Object.fromEntries(
       cookieHeader.split('; ').map(c => {

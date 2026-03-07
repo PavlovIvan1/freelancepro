@@ -81,6 +81,14 @@ export default function ProfilePage() {
             name: data.user.name || '',
             email: data.user.email || '',
           }))
+          
+          // Set current plan based on user's subscription
+          if (data.user.planId) {
+            const userPlan = plans.find(p => p.id === data.user.planId)
+            if (userPlan) {
+              setCurrentPlan(userPlan)
+            }
+          }
         }
       })
       .catch(console.error)
