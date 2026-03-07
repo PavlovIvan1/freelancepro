@@ -10,14 +10,19 @@ import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
   try {
+    console.log('Starting registration...')
+    
     // Initialize database first (create tables if not exists)
     await initializeDatabase()
+    console.log('Database initialized')
     
     // Seed payment plans if needed
     await seedPaymentPlans()
+    console.log('Payment plans seeded')
     
     const body = await request.json()
     const { name, email, password } = body
+    console.log('Received:', { name, email })
 
     if (!name || !email || !password) {
       return NextResponse.json(
@@ -34,12 +39,16 @@ export async function POST(request: Request) {
         { status: 400 }
       )
     }
+    console.log('User does not exist, creating new user')
 
     const id = 'u_' + Math.random().toString(36).slice(2, 11)
+    console.log('Hashing password...')
     const passwordHash = await hashPassword(password)
+    console.log('Password hashed')
     const now = new Date().toISOString()
 
     // Create user
+    console.log('Creating user in DB...')
     await createUser({
       id,
       email,
@@ -51,6 +60,7 @@ export async function POST(request: Request) {
       createdAt: now,
       updatedAt: now
     })
+    console.log('User created')
 
     // Create free subscription
     const subscriptionId = 'sub_' + Math.random().toString(36).slice(2, 11)
@@ -63,9 +73,11 @@ export async function POST(request: Request) {
       endDate: null,
       createdAt: now
     })
+    console.log('Subscription created')
 
     // Create session
     const token = createSession(id)
+    console.log('Session created')
     
     const response = NextResponse.json(
       { 
@@ -77,11 +89,12 @@ export async function POST(request: Request) {
 
     response.headers.set('Set-Cookie', setSessionCookie(token))
 
+    console.log('Registration complete!')
     return response
   } catch (error) {
     console.error('Error registering user:', error)
     return NextResponse.json(
-      { error: 'Ошибка при регистрации' },
+      { error: 'Ошибка при регистрации: ' + (error as Error).message },
       { status: 500 }
     )
   }
