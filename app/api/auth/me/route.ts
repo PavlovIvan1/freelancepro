@@ -18,7 +18,14 @@ export async function GET(request: Request) {
       return NextResponse.json({ user: null })
     }
 
-    const userId = getSession(token)
+    const session = getSession(token)
+    
+    if (!session) {
+      return NextResponse.json({ user: null })
+    }
+
+    // Get userId from session object
+    const userId = session.userId
     
     if (!userId) {
       return NextResponse.json({ user: null })
