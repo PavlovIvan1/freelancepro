@@ -1,0 +1,396 @@
+{
+  "users": [
+    {
+      "id": "u_ane7blx8v",
+      "email": "asd@asd.asd",
+      "name": "asd",
+      "password": "0000000060d1bfd0",
+      "subscriptionId": null,
+      "subscriptionPlan": "free",
+      "subscriptionExpiresAt": null,
+      "createdAt": "2026-03-06T20:10:07.999Z",
+      "updatedAt": "2026-03-06T20:10:07.999Z"
+    },
+    {
+      "id": "u_0cpfy50lp",
+      "email": "asdasd@asdasd.asd",
+      "name": "asd",
+      "password": "0000000060d1bfd0",
+      "subscriptionId": null,
+      "subscriptionPlan": "free",
+      "subscriptionExpiresAt": null,
+      "createdAt": "2026-03-06T20:16:03.307Z",
+      "updatedAt": "2026-03-06T20:16:03.307Z"
+    },
+    {
+      "id": "u_bpdtk691i",
+      "email": "ivanpavlovdeveloper@gmail.com",
+      "name": "Иван",
+      "password": "0000000029eb9dc4",
+      "subscriptionId": null,
+      "subscriptionPlan": "free",
+      "subscriptionExpiresAt": null,
+      "createdAt": "2026-03-06T20:54:50.036Z",
+      "updatedAt": "2026-03-06T20:54:50.036Z"
+    },
+    {
+      "id": "u_d389xd2p7",
+      "email": "qwe@qwe.qwe",
+      "name": "qwe",
+      "password": "0000000021af7cb0",
+      "subscriptionId": null,
+      "subscriptionPlan": "free",
+      "subscriptionExpiresAt": null,
+      "createdAt": "2026-03-07T07:07:43.927Z",
+      "updatedAt": "2026-03-07T07:07:43.927Z"
+    },
+    {
+      "id": "u_5qjjzt2g2",
+      "email": "123@123.123",
+      "name": "123",
+      "password": "0000000021e127d0",
+      "subscriptionId": null,
+      "subscriptionPlan": "pro",
+      "subscriptionExpiresAt": "2026-04-06T07:17:31.783Z",
+      "createdAt": "2026-03-07T07:16:35.205Z",
+      "updatedAt": "2026-03-07T07:17:31.784Z"
+    },
+    {
+      "id": "u_sbgt2hexq",
+      "email": "ghj@hjkg.ghj",
+      "name": "ghj",
+      "password": "000000001312b390",
+      "subscriptionId": null,
+      "subscriptionPlan": "free",
+      "subscriptionExpiresAt": null,
+      "createdAt": "2026-03-07T07:23:51.310Z",
+      "updatedAt": "2026-03-07T07:23:51.310Z"
+    },
+    {
+      "id": "u_xzpfk2lks",
+      "email": "xzc@zxc.zxc",
+      "name": "xzc",
+      "password": "000000005099dd10",
+      "subscriptionId": null,
+      "subscriptionPlan": "free",
+      "subscriptionExpiresAt": null,
+      "createdAt": "2026-03-07T07:33:47.965Z",
+      "updatedAt": "2026-03-07T07:33:47.965Z"
+    }
+  ],
+  "subscriptions": [
+    {
+      "id": "sub_n0ncveub3",
+      "userId": "u_ane7blx8v",
+      "planId": "free",
+      "status": "active",
+      "startDate": "2026-03-06T20:10:07.999Z",
+      "endDate": null,
+      "createdAt": "2026-03-06T20:10:07.999Z"
+    },
+    {
+      "id": "sub_twee19889",
+      "userId": "u_0cpfy50lp",
+      "planId": "free",
+      "status": "active",
+      "startDate": "2026-03-06T20:16:03.307Z",
+      "endDate": null,
+      "createdAt": "2026-03-06T20:16:03.307Z"
+    },
+    {
+      "id": "sub_ifkk0f9pm",
+      "userId": "u_bpdtk691i",
+      "planId": "free",
+      "status": "active",
+      "startDate": "2026-03-06T20:54:50.036Z",
+      "endDate": null,
+      "createdAt": "2026-03-06T20:54:50.036Z"
+    },
+    {
+      "id": "sub_4xbguzge9",
+      "userId": "u_d389xd2p7",
+      "planId": "free",
+      "status": "active",
+      "startDate": "2026-03-07T07:07:43.927Z",
+      "endDate": null,
+      "createdAt": "2026-03-07T07:07:43.927Z"
+    },
+    {
+      "id": "sub_lk4u4vviy",
+      "userId": "u_5qjjzt2g2",
+      "planId": "free",
+      "status": "active",
+      "startDate": "2026-03-07T07:16:35.205Z",
+      "endDate": null,
+      "createdAt": "2026-03-07T07:16:35.205Z"
+    },
+    {
+      "id": "sub_bnprwrfxk",
+      "userId": "u_sbgt2hexq",
+      "planId": "free",
+      "status": "active",
+      "startDate": "2026-03-07T07:23:51.310Z",
+      "endDate": null,
+      "createdAt": "2026-03-07T07:23:51.310Z"
+    },
+    {
+      "id": "sub_ti8ugfm8n",
+      "userId": "u_xzpfk2lks",
+      "planId": "free",
+      "status": "active",
+      "startDate": "2026-03-07T07:33:47.965Z",
+      "endDate": null,
+      "createdAt": "2026-03-07T07:33:47.965Z"
+    }
+  ],
+  "clients": [
+    {
+      "id": "c_iq56k9l7b",
+      "userId": "u_bpdtk691i",
+      "name": "qwe",
+      "email": "",
+      "phone": "",
+      "company": "",
+      "notes": "",
+      "createdAt": "2026-03-06T20:54:59.727Z",
+      "updatedAt": "2026-03-06T20:54:59.727Z"
+    },
+    {
+      "id": "c_xql2lniwb",
+      "userId": "u_5qjjzt2g2",
+      "name": "qwe",
+      "email": "qwe",
+      "phone": "",
+      "company": "qwe",
+      "notes": "",
+      "createdAt": "2026-03-07T07:16:54.875Z",
+      "updatedAt": "2026-03-07T07:16:54.875Z"
+    },
+    {
+      "id": "c_r3qq53jc8",
+      "userId": "u_sbgt2hexq",
+      "name": "sdf",
+      "email": "sdf",
+      "phone": "",
+      "company": "sdf",
+      "notes": "",
+      "createdAt": "2026-03-07T07:24:07.738Z",
+      "updatedAt": "2026-03-07T07:24:07.738Z"
+    },
+    {
+      "id": "c_hnrsud6nb",
+      "userId": "u_xzpfk2lks",
+      "name": "asd",
+      "email": "",
+      "phone": "",
+      "company": "",
+      "notes": "",
+      "createdAt": "2026-03-07T07:34:02.659Z",
+      "updatedAt": "2026-03-07T07:34:02.659Z"
+    }
+  ],
+  "projects": [
+    {
+      "id": "p_qwuwc6y47",
+      "userId": "u_bpdtk691i",
+      "clientId": "c_iq56k9l7b",
+      "name": "qwe",
+      "description": "",
+      "status": "active",
+      "budget": "123",
+      "deadline": null,
+      "createdAt": "2026-03-06T20:55:00.177Z",
+      "updatedAt": "2026-03-06T20:55:00.177Z"
+    },
+    {
+      "id": "p_41psg2n81",
+      "userId": "u_bpdtk691i",
+      "clientId": "6tm18tng8",
+      "name": "qwe",
+      "description": "",
+      "status": "active",
+      "budget": "123",
+      "deadline": null,
+      "createdAt": "2026-03-06T20:55:10.171Z",
+      "updatedAt": "2026-03-06T20:55:10.171Z"
+    },
+    {
+      "id": "p_vksrqscw6",
+      "userId": "u_bpdtk691i",
+      "clientId": "6tm18tng8",
+      "name": "qwe",
+      "description": "",
+      "status": "active",
+      "budget": "123",
+      "deadline": null,
+      "createdAt": "2026-03-06T20:55:15.466Z",
+      "updatedAt": "2026-03-06T20:55:15.466Z"
+    },
+    {
+      "id": "p_7t1s6dpn7",
+      "userId": "u_bpdtk691i",
+      "clientId": "6tm18tng8",
+      "name": "qwe",
+      "description": "",
+      "status": "active",
+      "budget": "123",
+      "deadline": null,
+      "createdAt": "2026-03-06T20:55:19.485Z",
+      "updatedAt": "2026-03-06T20:55:19.485Z"
+    },
+    {
+      "id": "p_bbp7nicb3",
+      "userId": "u_bpdtk691i",
+      "clientId": "6tm18tng8",
+      "name": "qwe",
+      "description": "",
+      "status": "active",
+      "budget": "123",
+      "deadline": null,
+      "createdAt": "2026-03-06T20:55:24.392Z",
+      "updatedAt": "2026-03-06T20:55:24.392Z"
+    },
+    {
+      "id": "p_cynmcf940",
+      "userId": "u_5qjjzt2g2",
+      "clientId": "c_xql2lniwb",
+      "name": "qwe",
+      "description": "",
+      "status": "active",
+      "budget": "1223",
+      "deadline": null,
+      "createdAt": "2026-03-07T07:16:54.893Z",
+      "updatedAt": "2026-03-07T07:16:54.893Z"
+    },
+    {
+      "id": "p_ck46953d8",
+      "userId": "u_5qjjzt2g2",
+      "clientId": "c_xql2lniwb",
+      "name": "qwe",
+      "description": "",
+      "status": "active",
+      "budget": "123",
+      "deadline": null,
+      "createdAt": "2026-03-07T07:17:01.379Z",
+      "updatedAt": "2026-03-07T07:17:01.379Z"
+    },
+    {
+      "id": "p_obumscv6s",
+      "userId": "u_5qjjzt2g2",
+      "clientId": "c_xql2lniwb",
+      "name": "qwe",
+      "description": "",
+      "status": "active",
+      "budget": "123",
+      "deadline": null,
+      "createdAt": "2026-03-07T07:17:04.770Z",
+      "updatedAt": "2026-03-07T07:17:04.770Z"
+    },
+    {
+      "id": "p_k41n95ugl",
+      "userId": "u_5qjjzt2g2",
+      "clientId": "c_xql2lniwb",
+      "name": "qwe",
+      "description": "",
+      "status": "active",
+      "budget": "123",
+      "deadline": null,
+      "createdAt": "2026-03-07T07:17:09.111Z",
+      "updatedAt": "2026-03-07T07:17:09.111Z"
+    },
+    {
+      "id": "p_4q2nejwv9",
+      "userId": "u_5qjjzt2g2",
+      "clientId": "c_xql2lniwb",
+      "name": "qwe",
+      "description": "",
+      "status": "active",
+      "budget": "123",
+      "deadline": null,
+      "createdAt": "2026-03-07T07:17:12.836Z",
+      "updatedAt": "2026-03-07T07:17:12.836Z"
+    },
+    {
+      "id": "p_hi9bntsgs",
+      "userId": "u_5qjjzt2g2",
+      "clientId": "c_xql2lniwb",
+      "name": "wer",
+      "description": "",
+      "status": "active",
+      "budget": "123",
+      "deadline": null,
+      "createdAt": "2026-03-07T07:17:58.831Z",
+      "updatedAt": "2026-03-07T07:17:58.831Z"
+    },
+    {
+      "id": "p_lm001864l",
+      "userId": "u_sbgt2hexq",
+      "clientId": "c_r3qq53jc8",
+      "name": "sadsdfsdff",
+      "description": "",
+      "status": "active",
+      "budget": "123",
+      "deadline": null,
+      "createdAt": "2026-03-07T07:24:07.774Z",
+      "updatedAt": "2026-03-07T07:27:45.618Z"
+    },
+    {
+      "id": "p_4j0l7t4n1",
+      "userId": "u_xzpfk2lks",
+      "clientId": "c_hnrsud6nb",
+      "name": "asd",
+      "description": "",
+      "status": "active",
+      "budget": "123",
+      "deadline": null,
+      "createdAt": "2026-03-07T07:34:02.685Z",
+      "updatedAt": "2026-03-07T07:34:19.940Z",
+      "notes": "# Ehfasdasd"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t_vbaa47mke",
+      "userId": "u_xzpfk2lks",
+      "projectId": "p_4j0l7t4n1",
+      "title": "asd",
+      "description": "asd",
+      "status": "done",
+      "priority": "high",
+      "dueDate": null,
+      "createdAt": "2026-03-07T07:34:30.243Z",
+      "updatedAt": "2026-03-07T07:37:35.036Z"
+    }
+  ],
+  "paymentPlans": [
+    {
+      "id": "free",
+      "name": "Free",
+      "price": 0,
+      "interval": "month",
+      "features": "[\"До 5 проектов\",\"До 10 задач\",\"Базовая аналитика\"]",
+      "isActive": true,
+      "sortOrder": 1
+    },
+    {
+      "id": "pro",
+      "name": "Pro",
+      "price": 490,
+      "interval": "month",
+      "features": "[\"Безлимитные проекты\",\"Безлимитные задачи\",\"Расширенная аналитика\",\"Экспорт данных\"]",
+      "isActive": true,
+      "sortOrder": 2
+    },
+    {
+      "id": "business",
+      "name": "Business",
+      "price": 1490,
+      "interval": "month",
+      "features": "[\"Всё из Pro\",\"Приоритетная поддержка\",\"Интеграции с API\",\"Белый лейбл\"]",
+      "isActive": true,
+      "sortOrder": 3
+    }
+  ],
+  "payments": [],
+  "monthlyEarnings": []
+}
