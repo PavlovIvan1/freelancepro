@@ -1,10 +1,12 @@
 import { sql } from 'drizzle-orm'
 import { db } from './neon'
 
-// Create tables
+// Create tables - with error handling for each table
 export async function initializeDatabase() {
+  console.log('Creating database tables...')
+  
+  // Create users table
   try {
-    // Create users table
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS users (
         id VARCHAR(20) PRIMARY KEY,
@@ -18,8 +20,13 @@ export async function initializeDatabase() {
         updated_at TIMESTAMP NOT NULL DEFAULT NOW()
       )
     `)
-
-    // Create subscriptions table
+    console.log('Users table created')
+  } catch (e) {
+    console.log('Users table error (may already exist):', e)
+  }
+  
+  // Create subscriptions table
+  try {
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS subscriptions (
         id VARCHAR(20) PRIMARY KEY,
@@ -31,8 +38,13 @@ export async function initializeDatabase() {
         created_at TIMESTAMP NOT NULL DEFAULT NOW()
       )
     `)
-
-    // Create clients table
+    console.log('Subscriptions table created')
+  } catch (e) {
+    console.log('Subscriptions table error:', e)
+  }
+  
+  // Create clients table
+  try {
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS clients (
         id VARCHAR(20) PRIMARY KEY,
@@ -46,8 +58,13 @@ export async function initializeDatabase() {
         updated_at TIMESTAMP NOT NULL DEFAULT NOW()
       )
     `)
-
-    // Create projects table
+    console.log('Clients table created')
+  } catch (e) {
+    console.log('Clients table error:', e)
+  }
+  
+  // Create projects table
+  try {
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS projects (
         id VARCHAR(20) PRIMARY KEY,
@@ -62,8 +79,13 @@ export async function initializeDatabase() {
         updated_at TIMESTAMP NOT NULL DEFAULT NOW()
       )
     `)
-
-    // Create tasks table
+    console.log('Projects table created')
+  } catch (e) {
+    console.log('Projects table error:', e)
+  }
+  
+  // Create tasks table
+  try {
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS tasks (
         id VARCHAR(20) PRIMARY KEY,
@@ -78,8 +100,13 @@ export async function initializeDatabase() {
         updated_at TIMESTAMP NOT NULL DEFAULT NOW()
       )
     `)
-
-    // Create payment_plans table
+    console.log('Tasks table created')
+  } catch (e) {
+    console.log('Tasks table error:', e)
+  }
+  
+  // Create payment_plans table
+  try {
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS payment_plans (
         id VARCHAR(20) PRIMARY KEY,
@@ -91,8 +118,13 @@ export async function initializeDatabase() {
         sort_order INTEGER DEFAULT 1
       )
     `)
-
-    // Create payments table
+    console.log('Payment_plans table created')
+  } catch (e) {
+    console.log('Payment_plans table error:', e)
+  }
+  
+  // Create payments table
+  try {
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS payments (
         id VARCHAR(20) PRIMARY KEY,
@@ -106,8 +138,13 @@ export async function initializeDatabase() {
         created_at TIMESTAMP NOT NULL DEFAULT NOW()
       )
     `)
-
-    // Create monthly_earnings table
+    console.log('Payments table created')
+  } catch (e) {
+    console.log('Payments table error:', e)
+  }
+  
+  // Create monthly_earnings table
+  try {
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS monthly_earnings (
         id VARCHAR(20) PRIMARY KEY,
@@ -119,22 +156,24 @@ export async function initializeDatabase() {
         UNIQUE(user_id, month, year)
       )
     `)
-
-    // Create indexes
+    console.log('Monthly_earnings table created')
+  } catch (e) {
+    console.log('Monthly_earnings table error:', e)
+  }
+  
+  // Create indexes
+  try {
     await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)`)
     await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id)`)
     await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_clients_user_id ON clients(user_id)`)
     await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_projects_user_id ON projects(user_id)`)
-    await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_projects_client_id ON projects(client_id)`)
     await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_tasks_project_id ON tasks(project_id)`)
-    await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_tasks_user_id ON tasks(user_id)`)
-    await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_payments_user_id ON payments(user_id)`)
-    await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_monthly_earnings_user_id ON monthly_earnings(user_id)`)
-
-    console.log('Database tables created successfully')
-  } catch (error) {
-    console.error('Error initializing database:', error)
+    console.log('Indexes created')
+  } catch (e) {
+    console.log('Index error:', e)
   }
+  
+  console.log('Database tables creation complete')
 }
 
 // Seed payment plans

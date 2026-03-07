@@ -1,9 +1,13 @@
 import { createSession, setSessionCookie, verifyPassword } from '@/lib/auth'
+import { initializeDatabase } from '@/lib/db/init'
 import { getUserByEmail, seedPaymentPlans } from '@/lib/db/json-db'
 import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
   try {
+    // Initialize database first (create tables if not exists)
+    await initializeDatabase()
+    
     // Seed payment plans if needed
     await seedPaymentPlans()
     
