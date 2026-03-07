@@ -1,4 +1,5 @@
 import { getUserId } from '@/lib/auth'
+import { initDb } from '@/lib/db/db'
 import {
   createProject,
   getProjectsByUserId,
@@ -15,6 +16,9 @@ const PLAN_LIMITS = {
 
 export async function GET() {
   try {
+    // Initialize database
+    await initDb()
+    
     const userId = await getUserId()
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

@@ -40,6 +40,7 @@ export async function createPayment(params: CreatePaymentParams) {
       return_url: returnUrl,
     },
     capture: true,
+    save_payment_method: true,
   }
 
   // Make API request to YooKassa

@@ -1,4 +1,5 @@
 import { getUserId } from '@/lib/auth'
+import { initDb } from '@/lib/db/db'
 import {
   deleteProject,
   getProjectById,
@@ -13,6 +14,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Initialize database
+    await initDb()
+    
     const userId = await getUserId()
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
