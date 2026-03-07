@@ -93,8 +93,9 @@ export async function POST(request: Request) {
     return response
   } catch (error) {
     console.error('Error registering user:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { error: 'Ошибка при регистрации: ' + (error as Error).message },
+      { error: 'Ошибка при регистрации: ' + errorMessage },
       { status: 500 }
     )
   }
