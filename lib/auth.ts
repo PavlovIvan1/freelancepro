@@ -6,7 +6,6 @@ function base64Encode(str: string): string {
   if (typeof btoa !== 'undefined') {
     return btoa(str)
   }
-  // For edge runtime
   return Buffer.from(str).toString('base64')
 }
 
@@ -14,7 +13,6 @@ function base64Decode(str: string): string {
   if (typeof atob !== 'undefined') {
     return atob(str)
   }
-  // For edge runtime
   return Buffer.from(str, 'base64').toString('utf-8')
 }
 
@@ -41,6 +39,20 @@ export function generateToken(): string {
   return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('')
 }
 
+// Get session data from token
+export function getSession(token: string): { userId: string; expires: number } | null {
+  try {
+    const decoded = base64Decode(token)
+    const data = JSON.parse(decoded)
+    if (data.expires && Date.now() > data.expires) {
+      return null
+    }
+    return data
+  } catch {
+    return null
+  }
+}
+
 // Cookie helpers
 export const COOKIE_NAME = 'freelio_session'
 
@@ -58,17 +70,8 @@ export async function getUserId(): Promise<string | null> {
   const token = cookieStore.get(COOKIE_NAME)?.value
   if (!token) return null
   
-  // Decode token (it contains userId)
-  try {
-    const decoded = base64Decode(token)
-    const data = JSON.parse(decoded)
-    if (data.expires && Date.now() > data.expires) {
-      return null
-    }
-    return data.userId || null
-  } catch {
-    return null
-  }
+  const session = getSession(token)
+  return session?.userId || null
 }
 
 // Create session

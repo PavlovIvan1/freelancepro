@@ -1,12 +1,11 @@
 import { createPayment, updateUser } from '@/lib/db/json-db'
 import { NextResponse } from 'next/server'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    
-    // Verify webhook signature (for production, you need to verify the signature)
-    // const signature = request.headers.get('x-yookassa-signature')
     
     const event = body.event
     
@@ -57,11 +56,4 @@ export async function POST(request: Request) {
     console.error('Webhook error:', error)
     return NextResponse.json({ error: 'Webhook processing error' }, { status: 500 })
   }
-}
-
-// Disable body parsing for webhook
-export const config = {
-  api: {
-    bodyParser: false,
-  },
 }
