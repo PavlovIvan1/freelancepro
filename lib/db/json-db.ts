@@ -458,7 +458,7 @@ export async function seedPaymentPlans(): Promise<void> {
 export interface Payment {
   id: string;
   userId: string;
-  subscriptionId: string | null;
+  subscriptionId?: string | null;
   amount: number;
   currency: string;
   status: string;

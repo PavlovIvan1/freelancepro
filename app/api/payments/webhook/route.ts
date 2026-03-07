@@ -28,7 +28,6 @@ export async function POST(request: Request) {
         // Update user's subscription
         await updateUser(userId, {
           subscriptionPlan: planId,
-          subscriptionId: payment.id,
           subscriptionExpiresAt: expiresAt.toISOString()
         })
         
@@ -36,7 +35,6 @@ export async function POST(request: Request) {
         await createPayment({
           id: 'pay_' + Math.random().toString(36).slice(2, 11),
           userId,
-          subscriptionId: payment.id,
           amount: parseFloat(payment.amount.value),
           currency: payment.amount.currency,
           status: 'completed',
