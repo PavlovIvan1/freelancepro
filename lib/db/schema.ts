@@ -6,7 +6,7 @@ export const users = pgTable('users', {
   email: varchar('email', { length: 255 }).notNull().unique(),
   password: varchar('password', { length: 255 }).notNull(),
   name: varchar('name', { length: 255 }).notNull(),
-  subscriptionId: varchar('subscription_id', { length: 20 }),
+  subscriptionId: varchar('subscription_id', { length: 100 }),
   subscriptionPlan: varchar('subscription_plan', { length: 20 }).default('free'),
   subscriptionExpiresAt: timestamp('subscription_expires_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -80,7 +80,7 @@ export const paymentPlans = pgTable('payment_plans', {
 export const payments = pgTable('payments', {
   id: varchar('id', { length: 20 }).primaryKey(),
   userId: varchar('user_id', { length: 20 }).references(() => users.id).notNull(),
-  subscriptionId: varchar('subscription_id', { length: 20 }),
+  subscriptionId: varchar('subscription_id', { length: 100 }),
   amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
   currency: varchar('currency', { length: 3 }).default('RUB'),
   status: varchar('status', { length: 20 }).default('pending'),
