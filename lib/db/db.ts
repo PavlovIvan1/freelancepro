@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm'
+import { and, eq, sql } from 'drizzle-orm'
 import { db, schema } from './neon'
 
 // Initialize database on first import
@@ -9,8 +9,8 @@ async function initializeDatabase() {
   
   try {
     console.log('Testing PostgreSQL database connection...')
-    // Test connection
-    await db.execute({ sql: 'SELECT 1' })
+    // Test connection with proper Drizzle syntax
+    await db.execute(sql`SELECT 1`)
     console.log('Database connection successful')
     dbInitialized = true
   } catch (error) {
@@ -106,7 +106,7 @@ export async function updateClient(id: string, updates: Partial<Client>): Promis
 }
 
 export async function deleteClient(id: string): Promise<boolean> {
-  const result = await db.delete(schema.clients).where(eq(schema.clients.id, id))
+  await db.delete(schema.clients).where(eq(schema.clients.id, id))
   return true
 }
 
@@ -136,9 +136,7 @@ export async function updateProject(id: string, updates: Partial<Project>): Prom
 }
 
 export async function deleteProject(id: string): Promise<boolean> {
-  // Delete related tasks first
   await db.delete(schema.tasks).where(eq(schema.tasks.projectId, id))
-  // Delete project
   await db.delete(schema.projects).where(eq(schema.projects.id, id))
   return true
 }
@@ -190,7 +188,7 @@ export async function createPaymentPlan(plan: NewPaymentPlan): Promise<PaymentPl
 
 export async function seedPaymentPlans(): Promise<void> {
   const existingPlans = await db.select().from(schema.paymentPlans)
-  
+
   if (existingPlans.length === 0) {
     await db.insert(schema.paymentPlans).values([
       {

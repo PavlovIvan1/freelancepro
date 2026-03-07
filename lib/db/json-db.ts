@@ -1,5 +1,5 @@
 // PostgreSQL Database Layer - Simple version for Neon
-import { eq } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import { db, schema } from './neon'
 
 // Helper to convert any date-like to ISO string
@@ -435,19 +435,19 @@ export async function createPaymentPlan(plan: PaymentPlan): Promise<PaymentPlan>
 
 export async function seedPaymentPlans(): Promise<void> {
   try {
-    const result = await db.execute({ sql: 'SELECT COUNT(*) as count FROM payment_plans' })
+    const result = await db.execute(sql`SELECT COUNT(*) as count FROM payment_plans`)
     const count = result[0]?.rows?.[0]?.count || 0
     
     if (Number(count) > 0) {
       return
     }
 
-    await db.execute({ sql: `
+    await db.execute(sql`
       INSERT INTO payment_plans (id, name, price, interval, features, is_active, sort_order) VALUES
       ('free', 'Free', 0, 'month', '["До 5 проектов", "До 10 задач", "Базовая аналитика"]', true, 1),
       ('pro', 'Pro', 490, 'month', '["Безлимитные проекты", "Безлимитные задачи", "Расширенная аналитика", "Экспорт данных"]', true, 2),
       ('business', 'Business', 1490, 'month', '["Всё из Pro", "Приоритетная поддержка", "Интеграции с API", "Белый лейбл"]', true, 3)
-    ` })
+    `)
   } catch (e) {
     console.log('Seed payment plans error (may already exist):', e)
   }
