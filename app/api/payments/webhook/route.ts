@@ -1,3 +1,4 @@
+import { initDb } from '@/lib/db/db'
 import { createPayment, updateUser } from '@/lib/db/json-db'
 import { NextResponse } from 'next/server'
 
@@ -5,7 +6,11 @@ export const dynamic = 'force-dynamic'
 
 export async function POST(request: Request) {
   try {
+    // Initialize database
+    await initDb()
+    
     const body = await request.json()
+    console.log('Webhook received:', JSON.stringify(body))
     
     const event = body.event
     
