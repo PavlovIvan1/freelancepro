@@ -98,28 +98,6 @@ export default function ProfilePage() {
     setPaymentStep('processing')
     setIsLoading(true)
 
-    const handlePayment = async () => {
-    if (!selectedPlan || selectedPlan.price === 0) {
-      // Free plan - just update
-      try {
-        const res = await fetch('/api/subscriptions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ planId: selectedPlan.id })
-        })
-        
-        if (res.ok) {
-          setCurrentPlan(selectedPlan)
-        }
-      } catch (error) {
-        console.error('Failed to update subscription:', error)
-      }
-      setPaymentStep('success')
-      setIsLoading(false)
-      return
-    }
-
-    // Paid plan - use YooKassa
     try {
       const res = await fetch('/api/payments/create', {
         method: 'POST',
@@ -133,7 +111,7 @@ export default function ProfilePage() {
         // Redirect to YooKassa payment page
         window.location.href = data.confirmationUrl
       } else {
-        throw new Error('No payment URL')
+        throw new Error(data.error || 'No payment URL')
       }
     } catch (error) {
       console.error('Payment error:', error)
@@ -141,7 +119,6 @@ export default function ProfilePage() {
     }
     
     setIsLoading(false)
-  }
   }
 
   return (

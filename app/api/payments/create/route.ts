@@ -1,4 +1,5 @@
 import { getUserId } from '@/lib/auth'
+import { initDb } from '@/lib/db/db'
 import { getPaymentPlans } from '@/lib/db/json-db'
 import { createPayment } from '@/lib/yookassa'
 import { NextResponse } from 'next/server'
@@ -6,6 +7,9 @@ import { NextResponse } from 'next/server'
 export async function POST(request: Request) {
   try {
     console.log('Creating payment...')
+    
+    // Initialize database
+    await initDb()
     
     const userId = await getUserId()
     console.log('User ID:', userId)
