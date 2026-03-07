@@ -1,0 +1,67 @@
+import { createPayment, updateUser } from '@/lib/db/json-db'
+import { NextResponse } from 'next/server'
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json()
+    
+    // Verify webhook signature (for production, you need to verify the signature)
+    // const signature = request.headers.get('x-yookassa-signature')
+    
+    const event = body.event
+    
+    if (event === 'payment.succeeded') {
+      const payment = body.object
+      
+      const userId = payment.metadata?.userId
+      const planId = payment.metadata?.planId
+      
+      if (userId) {
+        // Calculate subscription expiry (30 days)
+        const expiresAt = new Date()
+        expiresAt.setDate(expiresAt.getDate() + 30)
+        
+        // Update user's subscription
+        await updateUser(userId, {
+          subscriptionPlan: planId,
+          subscriptionId: payment.id,
+          subscriptionExpiresAt: expiresAt.toISOString()
+        })
+        
+        // Create payment record
+        await createPayment({
+          id: 'pay_' + Math.random().toString(36).slice(2, 11),
+          userId,
+          subscriptionId: payment.id,
+          amount: parseFloat(payment.amount.value),
+          currency: payment.amount.currency,
+          status: 'completed',
+          paymentMethod: 'bank_card',
+          externalId: payment.id,
+          createdAt: new Date().toISOString()
+        })
+        
+        console.log(`Payment succeeded for user ${userId}, plan: ${planId}`)
+      }
+    } else if (event === 'payment.canceled') {
+      const payment = body.object
+      const userId = payment.metadata?.userId
+      
+      if (userId) {
+        console.log(`Payment canceled for user ${userId}`)
+      }
+    }
+    
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Webhook error:', error)
+    return NextResponse.json({ error: 'Webhook processing error' }, { status: 500 })
+  }
+}
+
+// Disable body parsing for webhook
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+}
