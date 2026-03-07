@@ -1,4 +1,5 @@
 import { getUserId } from '@/lib/auth'
+import { initDb } from '@/lib/db/db'
 import {
   createTask,
   deleteTask,
@@ -12,6 +13,9 @@ import { NextResponse } from 'next/server'
 // GET /api/tasks - Get all tasks (optionally filtered by projectId)
 export async function GET(request: Request) {
   try {
+    // Initialize database
+    await initDb()
+    
     const userId = await getUserId()
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
