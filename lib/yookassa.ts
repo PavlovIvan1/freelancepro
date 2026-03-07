@@ -1,14 +1,13 @@
-import { YooKassa } from 'yookassa'
-
+// YooKassa configuration
 const shopId = process.env.YOOKASSA_SHOP_ID || ''
 const secretKey = process.env.YOOKASSA_SECRET_KEY || ''
 
-// Create YooKassa instance
-export const yookassa = new YooKassa({
-  shopId,
-  secretKey,
-  debug: true, // Enable debug mode for test payments
-})
+// Base64 encode without Buffer (for edge compatibility)
+function basicAuth(username: string, password: string): string {
+  const credentials = `${username}:${password}`
+  const encoded = btoa(credentials)
+  return encoded
+}
 
 // Payment Create Request
 export interface CreatePaymentParams {
@@ -19,11 +18,11 @@ export interface CreatePaymentParams {
   returnUrl: string
 }
 
-// Create payment
+// Create payment using YooKassa API directly
 export async function createPayment(params: CreatePaymentParams) {
   const { amount, description, userId, planId, returnUrl } = params
 
-  const payment = await yookassa.createPayment({
+  const paymentData = {
     amount: {
       value: amount.toFixed(2),
       currency: 'RUB',
@@ -41,12 +40,41 @@ export async function createPayment(params: CreatePaymentParams) {
       return_url: returnUrl,
     },
     capture: true,
+  }
+
+  // Make API request to YooKassa
+  const response = await fetch('https://api.yookassa.ru/v3/payments', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Idempotence-Key': crypto.randomUUID(),
+      'Authorization': `Basic ${basicAuth(shopId, secretKey)}`,
+    },
+    body: JSON.stringify(paymentData),
   })
 
-  return payment
+  if (!response.ok) {
+    const error = await response.text()
+    console.error('YooKassa error:', error)
+    throw new Error('Failed to create payment')
+  }
+
+  return await response.json()
 }
 
 // Get payment status
 export async function getPayment(paymentId: string) {
-  return yookassa.getPayment(paymentId)
+  const response = await fetch(`https://api.yookassa.ru/v3/payments/${paymentId}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Basic ${basicAuth(shopId, secretKey)}`,
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to get payment')
+  }
+
+  return await response.json()
 }
