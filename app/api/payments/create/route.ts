@@ -58,10 +58,21 @@ export async function POST(request: Request) {
     
     console.log('Payment created:', payment)
 
+    // Check if payment was created successfully
+    if (!payment || !payment.id) {
+      console.error('Payment creation failed - no payment ID returned')
+      return NextResponse.json({ error: 'Не удалось создать платёж' }, { status: 500 })
+    }
+
     // Return payment URL for redirect
+    if (!payment.confirmation?.confirmation_url) {
+      console.error('Payment created but no confirmation URL:', payment)
+      return NextResponse.json({ error: 'Не удалось получить ссылку для оплаты' }, { status: 500 })
+    }
+
     return NextResponse.json({
       paymentId: payment.id,
-      confirmationUrl: payment.confirmation?.confirmation_url
+      confirmationUrl: payment.confirmation.confirmation_url
     })
   } catch (error) {
     console.error('Error creating payment:', error)

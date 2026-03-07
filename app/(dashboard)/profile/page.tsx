@@ -13,7 +13,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
-import { AlertCircle, Check, CreditCard, Crown, User } from 'lucide-react'
+import { Check, CreditCard, Crown, User } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 interface PaymentPlan {
@@ -258,7 +258,7 @@ export default function ProfilePage() {
               {paymentStep === 'success' && 'Платёж успешен!'}
             </DialogTitle>
             <DialogDescription>
-              {paymentStep === 'select' && 'Демо-режим ЮKassa'}
+              {paymentStep === 'select' && 'Нажмите кнопку для перехода на безопасную страницу оплаты'}
               {paymentStep === 'processing' && 'Пожалуйста, подождите'}
               {paymentStep === 'success' && 'Ваш тариф активирован'}
             </DialogDescription>
@@ -277,35 +277,9 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <CreditCard className="h-4 w-4" />
-                  <span>Оплата через ЮKassa</span>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Номер карты</Label>
-                  <Input placeholder="1234 5678 9012 3456" />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label>Срок действия</Label>
-                    <Input placeholder="MM/YY" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>CVC</Label>
-                    <Input placeholder="123" />
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-2 p-3 border rounded-lg">
-                  <AlertCircle className="h-4 w-4 mt-0.5 text-amber-600" />
-                  <div className="text-xs text-muted-foreground">
-                    <p className="font-medium">Демо-режим</p>
-                    <p>Это тестовый платёж. Деньги не списываются.</p>
-                  </div>
-                </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <CreditCard className="h-4 w-4" />
+                <span>Вы будете перенаправлены на безопасную страницу оплаты ЮKassa</span>
               </div>
 
               <Button 
