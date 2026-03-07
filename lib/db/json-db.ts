@@ -1,8 +1,9 @@
-import { promises as fs } from 'fs'
-import path from 'path'
+// PostgreSQL Database Layer
+// This file provides the same interface as the JSON database but uses PostgreSQL via Drizzle ORM
 
-const DB_PATH = path.join(process.cwd(), 'data');
+import * as db from './db'
 
+// Types - matching the original JSON interface
 export interface User {
   id: string;
   email: string;
@@ -94,328 +95,348 @@ export interface MonthlyEarning {
   createdAt: string;
 }
 
-interface Database {
-  users: User[];
-  subscriptions: Subscription[];
-  clients: Client[];
-  projects: Project[];
-  tasks: Task[];
-  paymentPlans: PaymentPlan[];
-  payments: Payment[];
-  monthlyEarnings: MonthlyEarning[];
-}
+// ==================== USER OPERATIONS ====================
 
-let db: Database | null = null;
-
-async function ensureDataDir(): Promise<void> {
-  try {
-    await fs.mkdir(DB_PATH, { recursive: true });
-  } catch (error) {
-    // Directory already exists
-  }
-}
-
-export async function loadDatabase(): Promise<Database> {
-  if (db) return db;
-  
-  await ensureDataDir();
-  
-  const dbFile = path.join(DB_PATH, 'database.json');
-  
-  try {
-    const data = await fs.readFile(dbFile, 'utf-8');
-    db = JSON.parse(data);
-  } catch (error) {
-    // Create empty database if file doesn't exist
-    db = {
-      users: [],
-      subscriptions: [],
-      clients: [],
-      projects: [],
-      tasks: [],
-      paymentPlans: [],
-      payments: [],
-      monthlyEarnings: []
-    };
-    await saveDatabase();
-  }
-  
-  return db!;
-}
-
-export async function saveDatabase(): Promise<void> {
-  if (!db) return;
-  
-  await ensureDataDir();
-  
-  const dbFile = path.join(DB_PATH, 'database.json');
-  await fs.writeFile(dbFile, JSON.stringify(db, null, 2));
-}
-
-// User operations
 export async function createUser(user: User): Promise<User> {
-  const database = await loadDatabase();
-  database.users.push(user);
-  await saveDatabase();
-  return user;
+  const created = await db.createUser(user)
+  return {
+    ...created,
+    subscriptionId: created.subscriptionId || null,
+    subscriptionPlan: created.subscriptionPlan || 'free',
+    subscriptionExpiresAt: created.subscriptionExpiresAt?.toISOString() || null,
+    createdAt: created.createdAt.toISOString(),
+    updatedAt: created.updatedAt.toISOString()
+  } as User
 }
 
 export async function getUserByEmail(email: string): Promise<User | undefined> {
-  const database = await loadDatabase();
-  return database.users.find(u => u.email === email);
+  const user = await db.getUserByEmail(email)
+  if (!user) return undefined
+  return {
+    ...user,
+    subscriptionId: user.subscriptionId || null,
+    subscriptionPlan: user.subscriptionPlan || 'free',
+    subscriptionExpiresAt: user.subscriptionExpiresAt?.toISOString() || null,
+    createdAt: user.createdAt.toISOString(),
+    updatedAt: user.updatedAt.toISOString()
+  } as User
 }
 
 export async function getUserById(id: string): Promise<User | undefined> {
-  const database = await loadDatabase();
-  return database.users.find(u => u.id === id);
+  const user = await db.getUserById(id)
+  if (!user) return undefined
+  return {
+    ...user,
+    subscriptionId: user.subscriptionId || null,
+    subscriptionPlan: user.subscriptionPlan || 'free',
+    subscriptionExpiresAt: user.subscriptionExpiresAt?.toISOString() || null,
+    createdAt: user.createdAt.toISOString(),
+    updatedAt: user.updatedAt.toISOString()
+  } as User
 }
 
 export async function updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
-  const database = await loadDatabase();
-  const index = database.users.findIndex(u => u.id === id);
-  if (index === -1) return undefined;
-  
-  database.users[index] = { ...database.users[index], ...updates, updatedAt: new Date().toISOString() };
-  await saveDatabase();
-  return database.users[index];
+  const updated = await db.updateUser(id, updates as any)
+  if (!updated) return undefined
+  return {
+    ...updated,
+    subscriptionId: updated.subscriptionId || null,
+    subscriptionPlan: updated.subscriptionPlan || 'free',
+    subscriptionExpiresAt: updated.subscriptionExpiresAt?.toISOString() || null,
+    createdAt: updated.createdAt.toISOString(),
+    updatedAt: updated.updatedAt.toISOString()
+  } as User
 }
 
-// Subscription operations
+// ==================== SUBSCRIPTION OPERATIONS ====================
+
 export async function createSubscription(subscription: Subscription): Promise<Subscription> {
-  const database = await loadDatabase();
-  database.subscriptions.push(subscription);
-  await saveDatabase();
-  return subscription;
+  const created = await db.createSubscription(subscription as any)
+  return {
+    ...created,
+    startDate: created.startDate.toISOString(),
+    endDate: created.endDate?.toISOString() || null,
+    createdAt: created.createdAt.toISOString()
+  } as Subscription
 }
 
 export async function getSubscriptionById(id: string): Promise<Subscription | undefined> {
-  const database = await loadDatabase();
-  return database.subscriptions.find(s => s.id === id);
+  const sub = await db.getSubscriptionById(id)
+  if (!sub) return undefined
+  return {
+    ...sub,
+    startDate: sub.startDate.toISOString(),
+    endDate: sub.endDate?.toISOString() || null,
+    createdAt: sub.createdAt.toISOString()
+  } as Subscription
 }
 
 export async function getSubscriptionByUserId(userId: string): Promise<Subscription | undefined> {
-  const database = await loadDatabase();
-  return database.subscriptions.find(s => s.userId === userId);
+  const sub = await db.getSubscriptionByUserId(userId)
+  if (!sub) return undefined
+  return {
+    ...sub,
+    startDate: sub.startDate.toISOString(),
+    endDate: sub.endDate?.toISOString() || null,
+    createdAt: sub.createdAt.toISOString()
+  } as Subscription
 }
 
-// Client operations
+// ==================== CLIENT OPERATIONS ====================
+
 export async function createClient(client: Client): Promise<Client> {
-  const database = await loadDatabase();
-  database.clients.push(client);
-  await saveDatabase();
-  return client;
+  const created = await db.createClient(client as any)
+  return {
+    ...created,
+    createdAt: created.createdAt.toISOString(),
+    updatedAt: created.updatedAt.toISOString()
+  } as Client
 }
 
 export async function getClientsByUserId(userId: string): Promise<Client[]> {
-  const database = await loadDatabase();
-  return database.clients.filter(c => c.userId === userId);
+  const clients = await db.getClientsByUserId(userId)
+  return clients.map(c => ({
+    ...c,
+    createdAt: c.createdAt.toISOString(),
+    updatedAt: c.updatedAt.toISOString()
+  })) as Client[]
 }
 
 export async function getClientById(id: string): Promise<Client | undefined> {
-  const database = await loadDatabase();
-  return database.clients.find(c => c.id === id);
+  const client = await db.getClientById(id)
+  if (!client) return undefined
+  return {
+    ...client,
+    createdAt: client.createdAt.toISOString(),
+    updatedAt: client.updatedAt.toISOString()
+  } as Client
 }
 
 export async function updateClient(id: string, updates: Partial<Client>): Promise<Client | undefined> {
-  const database = await loadDatabase();
-  const index = database.clients.findIndex(c => c.id === id);
-  if (index === -1) return undefined;
-  
-  database.clients[index] = { ...database.clients[index], ...updates, updatedAt: new Date().toISOString() };
-  await saveDatabase();
-  return database.clients[index];
+  const updated = await db.updateClient(id, updates as any)
+  if (!updated) return undefined
+  return {
+    ...updated,
+    createdAt: updated.createdAt.toISOString(),
+    updatedAt: updated.updatedAt.toISOString()
+  } as Client
 }
 
 export async function deleteClient(id: string): Promise<boolean> {
-  const database = await loadDatabase();
-  const index = database.clients.findIndex(c => c.id === id);
-  if (index === -1) return false;
-  
-  database.clients.splice(index, 1);
-  await saveDatabase();
-  return true;
+  return db.deleteClient(id)
 }
 
-// Project operations
+// ==================== PROJECT OPERATIONS ====================
+
 export async function createProject(project: Project): Promise<Project> {
-  const database = await loadDatabase();
-  database.projects.push(project);
-  await saveDatabase();
-  return project;
+  const created = await db.createProject({
+    ...project,
+    budget: project.budget.toString()
+  } as any)
+  return {
+    ...created,
+    budget: Number(created.budget),
+    deadline: created.deadline?.toISOString() || null,
+    createdAt: created.createdAt.toISOString(),
+    updatedAt: created.updatedAt.toISOString()
+  } as Project
 }
 
 export async function getProjectsByUserId(userId: string): Promise<Project[]> {
-  const database = await loadDatabase();
-  return database.projects.filter(p => p.userId === userId);
+  const projects = await db.getProjectsByUserId(userId)
+  return projects.map(p => ({
+    ...p,
+    budget: Number(p.budget),
+    deadline: p.deadline?.toISOString() || null,
+    createdAt: p.createdAt.toISOString(),
+    updatedAt: p.updatedAt.toISOString()
+  })) as Project[]
 }
 
 export async function getProjectById(id: string): Promise<Project | undefined> {
-  const database = await loadDatabase();
-  return database.projects.find(p => p.id === id);
+  const project = await db.getProjectById(id)
+  if (!project) return undefined
+  return {
+    ...project,
+    budget: Number(project.budget),
+    deadline: project.deadline?.toISOString() || null,
+    createdAt: project.createdAt.toISOString(),
+    updatedAt: project.updatedAt.toISOString()
+  } as Project
 }
 
 export async function updateProject(id: string, updates: Partial<Project>): Promise<Project | undefined> {
-  const database = await loadDatabase();
-  const index = database.projects.findIndex(p => p.id === id);
-  if (index === -1) return undefined;
-  
-  database.projects[index] = { ...database.projects[index], ...updates, updatedAt: new Date().toISOString() };
-  await saveDatabase();
-  return database.projects[index];
+  const updated = await db.updateProject(id, {
+    ...updates,
+    budget: updates.budget?.toString()
+  } as any)
+  if (!updated) return undefined
+  return {
+    ...updated,
+    budget: Number(updated.budget),
+    deadline: updated.deadline?.toISOString() || null,
+    createdAt: updated.createdAt.toISOString(),
+    updatedAt: updated.updatedAt.toISOString()
+  } as Project
 }
 
 export async function deleteProject(id: string): Promise<boolean> {
-  const database = await loadDatabase();
-  const index = database.projects.findIndex(p => p.id === id);
-  if (index === -1) return false;
-  
-  database.projects.splice(index, 1);
-  // Also delete related tasks
-  database.tasks = database.tasks.filter(t => t.projectId !== id);
-  await saveDatabase();
-  return true;
+  return db.deleteProject(id)
 }
 
-// Task operations
+// ==================== TASK OPERATIONS ====================
+
 export async function createTask(task: Task): Promise<Task> {
-  const database = await loadDatabase();
-  database.tasks.push(task);
-  await saveDatabase();
-  return task;
+  const created = await db.createTask(task as any)
+  return {
+    ...created,
+    dueDate: created.dueDate?.toISOString() || null,
+    createdAt: created.createdAt.toISOString(),
+    updatedAt: created.updatedAt.toISOString()
+  } as Task
 }
 
 export async function getTasksByProjectId(projectId: string): Promise<Task[]> {
-  const database = await loadDatabase();
-  return database.tasks.filter(t => t.projectId === projectId);
+  const tasks = await db.getTasksByProjectId(projectId)
+  return tasks.map(t => ({
+    ...t,
+    dueDate: t.dueDate?.toISOString() || null,
+    createdAt: t.createdAt.toISOString(),
+    updatedAt: t.updatedAt.toISOString()
+  })) as Task[]
 }
 
 export async function getTaskById(id: string): Promise<Task | undefined> {
-  const database = await loadDatabase();
-  return database.tasks.find(t => t.id === id);
+  const task = await db.getTaskById(id)
+  if (!task) return undefined
+  return {
+    ...task,
+    dueDate: task.dueDate?.toISOString() || null,
+    createdAt: task.createdAt.toISOString(),
+    updatedAt: task.updatedAt.toISOString()
+  } as Task
 }
 
 export async function getTasksByUserId(userId: string): Promise<Task[]> {
-  const database = await loadDatabase();
-  return database.tasks.filter(t => t.userId === userId);
+  const tasks = await db.getTasksByUserId(userId)
+  return tasks.map(t => ({
+    ...t,
+    dueDate: t.dueDate?.toISOString() || null,
+    createdAt: t.createdAt.toISOString(),
+    updatedAt: t.updatedAt.toISOString()
+  })) as Task[]
 }
 
 export async function updateTask(id: string, updates: Partial<Task>): Promise<Task | undefined> {
-  const database = await loadDatabase();
-  const index = database.tasks.findIndex(t => t.id === id);
-  if (index === -1) return undefined;
-  
-  database.tasks[index] = { ...database.tasks[index], ...updates, updatedAt: new Date().toISOString() };
-  await saveDatabase();
-  return database.tasks[index];
+  const updated = await db.updateTask(id, updates as any)
+  if (!updated) return undefined
+  return {
+    ...updated,
+    dueDate: updated.dueDate?.toISOString() || null,
+    createdAt: updated.createdAt.toISOString(),
+    updatedAt: updated.updatedAt.toISOString()
+  } as Task
 }
 
 export async function deleteTask(id: string): Promise<boolean> {
-  const database = await loadDatabase();
-  const index = database.tasks.findIndex(t => t.id === id);
-  if (index === -1) return false;
-  
-  database.tasks.splice(index, 1);
-  await saveDatabase();
-  return true;
+  return db.deleteTask(id)
 }
 
-// Payment Plan operations
+// ==================== PAYMENT PLAN OPERATIONS ====================
+
 export async function getPaymentPlans(): Promise<PaymentPlan[]> {
-  const database = await loadDatabase();
-  return database.paymentPlans.filter(p => p.isActive).sort((a, b) => a.sortOrder - b.sortOrder);
+  const plans = await db.getPaymentPlans()
+  return plans.map(p => ({
+    ...p,
+    price: Number(p.price),
+    isActive: Boolean(p.isActive)
+  })) as PaymentPlan[]
 }
 
 export async function createPaymentPlan(plan: PaymentPlan): Promise<PaymentPlan> {
-  const database = await loadDatabase();
-  database.paymentPlans.push(plan);
-  await saveDatabase();
-  return plan;
+  const created = await db.createPaymentPlan({
+    ...plan,
+    price: plan.price.toString(),
+    features: plan.features
+  } as any)
+  return {
+    ...created,
+    price: Number(created.price),
+    isActive: Boolean(created.isActive)
+  } as PaymentPlan
 }
 
 export async function seedPaymentPlans(): Promise<void> {
-  const database = await loadDatabase();
-  
-  if (database.paymentPlans.length === 0) {
-    database.paymentPlans = [
-      {
-        id: 'free',
-        name: 'Free',
-        price: 0,
-        interval: 'month',
-        features: JSON.stringify(['До 5 проектов', 'До 10 задач', 'Базовая аналитика']),
-        isActive: true,
-        sortOrder: 1
-      },
-      {
-        id: 'pro',
-        name: 'Pro',
-        price: 490,
-        interval: 'month',
-        features: JSON.stringify(['Безлимитные проекты', 'Безлимитные задачи', 'Расширенная аналитика', 'Экспорт данных']),
-        isActive: true,
-        sortOrder: 2
-      },
-      {
-        id: 'business',
-        name: 'Business',
-        price: 1490,
-        interval: 'month',
-        features: JSON.stringify(['Всё из Pro', 'Приоритетная поддержка', 'Интеграции с API', 'Белый лейбл']),
-        isActive: true,
-        sortOrder: 3
-      }
-    ];
-    await saveDatabase();
-  }
+  return db.seedPaymentPlans()
 }
 
-// Payment operations
+// ==================== PAYMENT OPERATIONS ====================
+
 export async function createPayment(payment: Payment): Promise<Payment> {
-  const database = await loadDatabase();
-  database.payments.push(payment);
-  await saveDatabase();
-  return payment;
+  const created = await db.createPayment({
+    ...payment,
+    amount: payment.amount.toString()
+  } as any)
+  return {
+    ...created,
+    amount: Number(created.amount),
+    createdAt: created.createdAt.toISOString()
+  } as Payment
 }
 
 export async function getPaymentsByUserId(userId: string): Promise<Payment[]> {
-  const database = await loadDatabase();
-  return database.payments.filter(p => p.userId === userId);
+  const payments = await db.getPaymentsByUserId(userId)
+  return payments.map(p => ({
+    ...p,
+    amount: Number(p.amount),
+    createdAt: p.createdAt.toISOString()
+  })) as Payment[]
 }
 
-// Monthly Earnings operations
+// ==================== MONTHLY EARNINGS OPERATIONS ====================
+
 export async function createMonthlyEarning(earning: MonthlyEarning): Promise<MonthlyEarning> {
-  const database = await loadDatabase();
-  database.monthlyEarnings.push(earning);
-  await saveDatabase();
-  return earning;
+  const created = await db.createMonthlyEarning({
+    ...earning,
+    amount: earning.amount.toString()
+  } as any)
+  return {
+    ...created,
+    amount: Number(created.amount),
+    createdAt: created.createdAt.toISOString()
+  } as MonthlyEarning
 }
 
 export async function getMonthlyEarningsByUserId(userId: string): Promise<MonthlyEarning[]> {
-  const database = await loadDatabase();
-  return database.monthlyEarnings.filter(e => e.userId === userId);
+  const earnings = await db.getMonthlyEarningsByUserId(userId)
+  return earnings.map(e => ({
+    ...e,
+    amount: Number(e.amount),
+    createdAt: e.createdAt.toISOString()
+  })) as MonthlyEarning[]
 }
 
 export async function updateMonthlyEarning(userId: string, month: string, year: number, amount: number): Promise<MonthlyEarning> {
-  const database = await loadDatabase();
-  const index = database.monthlyEarnings.findIndex(
-    e => e.userId === userId && e.month === month && e.year === year
-  );
-  
-  if (index !== -1) {
-    database.monthlyEarnings[index].amount = amount;
-    await saveDatabase();
-    return database.monthlyEarnings[index];
-  }
-  
-  return await createMonthlyEarning({
-    id: crypto.randomUUID(),
-    userId,
-    month,
-    year,
-    amount,
-    createdAt: new Date().toISOString()
-  });
+  const updated = await db.updateMonthlyEarning(userId, month, year, amount)
+  return {
+    ...updated,
+    amount: Number(updated.amount),
+    createdAt: updated.createdAt.toISOString()
+  } as MonthlyEarning
+}
+
+// ==================== DATABASE INITIALIZATION ====================
+
+export async function loadDatabase(): Promise<any> {
+  // For PostgreSQL, we don't need to load anything
+  // The connection is established automatically
+  await db.initializeDatabase()
+  return {}
+}
+
+export async function saveDatabase(): Promise<void> {
+  // For PostgreSQL, data is saved automatically after each operation
 }
 
 // Initialize database on module load
-loadDatabase();
+loadDatabase()

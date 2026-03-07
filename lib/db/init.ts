@@ -1,185 +1,164 @@
-import { getDatabase, saveDatabase } from './index'
+import { sql } from 'drizzle-orm'
+import { db } from './neon'
 
 // Create tables
 export async function initializeDatabase() {
-  const db = await getDatabase()
+  try {
+    // Create users table
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS users (
+        id VARCHAR(20) PRIMARY KEY,
+        email VARCHAR(255) NOT NULL UNIQUE,
+        password VARCHAR(255) NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        subscription_id VARCHAR(20),
+        subscription_plan VARCHAR(20) DEFAULT 'free',
+        subscription_expires_at TIMESTAMP,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+      )
+    `)
 
-  // Users table
-  db.run(`
-    CREATE TABLE IF NOT EXISTS users (
-      id TEXT PRIMARY KEY,
-      email TEXT UNIQUE NOT NULL,
-      name TEXT NOT NULL,
-      passwordHash TEXT NOT NULL,
-      role TEXT NOT NULL DEFAULT 'user',
-      planId TEXT NOT NULL DEFAULT 'free',
-      planExpiresAt TEXT,
-      createdAt TEXT NOT NULL,
-      updatedAt TEXT NOT NULL
-    )
-  `)
+    // Create subscriptions table
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS subscriptions (
+        id VARCHAR(20) PRIMARY KEY,
+        user_id VARCHAR(20) NOT NULL REFERENCES users(id),
+        plan_id VARCHAR(20) NOT NULL,
+        status VARCHAR(20) DEFAULT 'active',
+        start_date TIMESTAMP NOT NULL DEFAULT NOW(),
+        end_date TIMESTAMP,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      )
+    `)
 
-  // Subscriptions table
-  db.run(`
-    CREATE TABLE IF NOT EXISTS subscriptions (
-      id TEXT PRIMARY KEY,
-      userId TEXT NOT NULL,
-      planId TEXT NOT NULL,
-      status TEXT NOT NULL DEFAULT 'active',
-      startedAt TEXT NOT NULL,
-      expiresAt TEXT,
-      autoRenew INTEGER NOT NULL DEFAULT 0,
-      FOREIGN KEY (userId) REFERENCES users(id)
-    )
-  `)
+    // Create clients table
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS clients (
+        id VARCHAR(20) PRIMARY KEY,
+        user_id VARCHAR(20) NOT NULL REFERENCES users(id),
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255),
+        phone VARCHAR(50),
+        company VARCHAR(255),
+        notes TEXT,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+      )
+    `)
 
-  // Clients table
-  db.run(`
-    CREATE TABLE IF NOT EXISTS clients (
-      id TEXT PRIMARY KEY,
-      userId TEXT NOT NULL,
-      name TEXT NOT NULL,
-      email TEXT,
-      company TEXT,
-      FOREIGN KEY (userId) REFERENCES users(id)
-    )
-  `)
+    // Create projects table
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS projects (
+        id VARCHAR(20) PRIMARY KEY,
+        user_id VARCHAR(20) NOT NULL REFERENCES users(id),
+        client_id VARCHAR(20) REFERENCES clients(id),
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        status VARCHAR(20) DEFAULT 'active',
+        budget DECIMAL(10, 2) DEFAULT 0,
+        deadline TIMESTAMP,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+      )
+    `)
 
-  // Projects table
-  db.run(`
-    CREATE TABLE IF NOT EXISTS projects (
-      id TEXT PRIMARY KEY,
-      userId TEXT NOT NULL,
-      name TEXT NOT NULL,
-      clientId TEXT NOT NULL,
-      budget REAL NOT NULL,
-      currency TEXT NOT NULL DEFAULT 'USD',
-      status TEXT NOT NULL DEFAULT 'active',
-      description TEXT,
-      startDate TEXT NOT NULL,
-      endDate TEXT,
-      notes TEXT DEFAULT '',
-      earnedAmount REAL DEFAULT 0,
-      category TEXT,
-      FOREIGN KEY (userId) REFERENCES users(id),
-      FOREIGN KEY (clientId) REFERENCES clients(id)
-    )
-  `)
+    // Create tasks table
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS tasks (
+        id VARCHAR(20) PRIMARY KEY,
+        user_id VARCHAR(20) NOT NULL REFERENCES users(id),
+        project_id VARCHAR(20) NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+        title VARCHAR(255) NOT NULL,
+        description TEXT,
+        status VARCHAR(20) DEFAULT 'todo',
+        priority VARCHAR(20) DEFAULT 'medium',
+        due_date TIMESTAMP,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+      )
+    `)
 
-  // Tasks table
-  db.run(`
-    CREATE TABLE IF NOT EXISTS tasks (
-      id TEXT PRIMARY KEY,
-      projectId TEXT NOT NULL,
-      title TEXT NOT NULL,
-      description TEXT,
-      status TEXT NOT NULL DEFAULT 'todo',
-      priority TEXT NOT NULL DEFAULT 'medium',
-      createdAt TEXT NOT NULL,
-      FOREIGN KEY (projectId) REFERENCES projects(id) ON DELETE CASCADE
-    )
-  `)
+    // Create payment_plans table
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS payment_plans (
+        id VARCHAR(20) PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        price DECIMAL(10, 2) NOT NULL,
+        interval VARCHAR(20) DEFAULT 'month',
+        features TEXT,
+        is_active BOOLEAN DEFAULT true,
+        sort_order INTEGER DEFAULT 1
+      )
+    `)
 
-  // Monthly earnings table
-  db.run(`
-    CREATE TABLE IF NOT EXISTS monthly_earnings (
-      id TEXT PRIMARY KEY,
-      userId TEXT NOT NULL,
-      month TEXT NOT NULL,
-      amount REAL NOT NULL,
-      FOREIGN KEY (userId) REFERENCES users(id)
-    )
-  `)
+    // Create payments table
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS payments (
+        id VARCHAR(20) PRIMARY KEY,
+        user_id VARCHAR(20) NOT NULL REFERENCES users(id),
+        subscription_id VARCHAR(20),
+        amount DECIMAL(10, 2) NOT NULL,
+        currency VARCHAR(3) DEFAULT 'RUB',
+        status VARCHAR(20) DEFAULT 'pending',
+        payment_method VARCHAR(50),
+        external_id VARCHAR(100),
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      )
+    `)
 
-  // Payments table
-  db.run(`
-    CREATE TABLE IF NOT EXISTS payments (
-      id TEXT PRIMARY KEY,
-      userId TEXT NOT NULL,
-      projectId TEXT,
-      amount REAL NOT NULL,
-      currency TEXT NOT NULL DEFAULT 'RUB',
-      status TEXT NOT NULL DEFAULT 'pending',
-      method TEXT NOT NULL DEFAULT 'card',
-      description TEXT,
-      yookassaPaymentId TEXT,
-      createdAt TEXT NOT NULL,
-      updatedAt TEXT NOT NULL,
-      FOREIGN KEY (userId) REFERENCES users(id),
-      FOREIGN KEY (projectId) REFERENCES projects(id) ON DELETE SET NULL
-    )
-  `)
+    // Create monthly_earnings table
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS monthly_earnings (
+        id VARCHAR(20) PRIMARY KEY,
+        user_id VARCHAR(20) NOT NULL REFERENCES users(id),
+        month VARCHAR(2) NOT NULL,
+        year INTEGER NOT NULL,
+        amount DECIMAL(10, 2) DEFAULT 0,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        UNIQUE(user_id, month, year)
+      )
+    `)
 
-  // Payment plans table
-  db.run(`
-    CREATE TABLE IF NOT EXISTS payment_plans (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      price REAL NOT NULL,
-      currency TEXT NOT NULL DEFAULT 'RUB',
-      features TEXT NOT NULL,
-      interval TEXT NOT NULL DEFAULT 'monthly',
-      isActive INTEGER NOT NULL DEFAULT 1
-    )
-  `)
+    // Create indexes
+    await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)`)
+    await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id)`)
+    await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_clients_user_id ON clients(user_id)`)
+    await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_projects_user_id ON projects(user_id)`)
+    await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_projects_client_id ON projects(client_id)`)
+    await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_tasks_project_id ON tasks(project_id)`)
+    await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_tasks_user_id ON tasks(user_id)`)
+    await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_payments_user_id ON payments(user_id)`)
+    await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_monthly_earnings_user_id ON monthly_earnings(user_id)`)
 
-  saveDatabase()
-  console.log('Database tables created successfully')
+    console.log('Database tables created successfully')
+  } catch (error) {
+    console.error('Error initializing database:', error)
+  }
 }
 
 // Seed payment plans
 export async function seedPaymentPlans() {
-  const db = await getDatabase()
-  
-  const result = db.exec('SELECT COUNT(*) as count FROM payment_plans')
-  const count = result[0]?.values[0]?.[0] as number || 0
-  
-  if (count > 0) {
-    console.log('Payment plans already seeded')
-    return
+  try {
+    // Check if plans already exist
+    const result = await db.execute(sql`SELECT COUNT(*) as count FROM payment_plans`)
+    const count = result[0]?.rows?.[0]?.count || 0
+    
+    if (Number(count) > 0) {
+      console.log('Payment plans already seeded')
+      return
+    }
+
+    // Insert payment plans
+    await db.execute(sql`
+      INSERT INTO payment_plans (id, name, price, interval, features, is_active, sort_order) VALUES
+      ('free', 'Free', 0, 'month', '["До 5 проектов", "До 10 задач", "Базовая аналитика"]', true, 1),
+      ('pro', 'Pro', 490, 'month', '["Безлимитные проекты", "Безлимитные задачи", "Расширенная аналитика", "Экспорт данных"]', true, 2),
+      ('business', 'Business', 1490, 'month', '["Всё из Pro", "Приоритетная поддержка", "Интеграции с API", "Белый лейбл"]', true, 3)
+    `)
+
+    console.log('Payment plans seeded successfully')
+  } catch (error) {
+    console.error('Error seeding payment plans:', error)
   }
-
-  const paymentPlans = [
-    {
-      id: 'free',
-      name: 'Free',
-      price: 0,
-      currency: 'RUB',
-      features: JSON.stringify(['До 5 проектов', 'Базовая аналитика', 'До 10 клиентов', 'Шаблоны задач']),
-      interval: 'monthly',
-      isActive: 1,
-    },
-    {
-      id: 'pro',
-      name: 'Pro',
-      price: 490,
-      currency: 'RUB',
-      features: JSON.stringify(['Безлимитные проекты', 'Расширенная аналитика', 'Безлимитные клиенты', 'Экспорт в PDF/Excel', 'Напоминания', 'Поддержка']),
-      interval: 'monthly',
-      isActive: 1,
-    },
-    {
-      id: 'business',
-      name: 'Business',
-      price: 1490,
-      currency: 'RUB',
-      features: JSON.stringify(['Всё из Pro', 'Командная работа', 'API доступ', 'Интеграции', 'Брендирование', 'Менеджер']),
-      interval: 'monthly',
-      isActive: 1,
-    },
-  ]
-
-  for (const plan of paymentPlans) {
-    db.run(`
-      INSERT INTO payment_plans (id, name, price, currency, features, interval, isActive)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `, [plan.id, plan.name, plan.price, plan.currency, plan.features, plan.interval, plan.isActive])
-  }
-
-  saveDatabase()
-  console.log('Payment plans seeded successfully')
 }
-
-// Initialize and seed on import
-initializeDatabase()
-seedPaymentPlans()
