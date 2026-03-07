@@ -1,21 +1,31 @@
-// Simple password hashing (in production, use bcrypt or argon2)
-// Using simple SHA-256 for demo purposes
+import bcrypt from 'bcryptjs'
+import { cookies } from 'next/headers'
 
-export function hashPassword(password: string): string {
-  // Simple hash for demo - in production use proper bcrypt
-  const salt = 'freelio_salt_2024'
-  let hash = 0
-  const str = password + salt
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i)
-    hash = ((hash << 5) - hash) + char
-    hash = hash & hash
+// Base64 encode without Buffer
+function base64Encode(str: string): string {
+  if (typeof btoa !== 'undefined') {
+    return btoa(str)
   }
-  return Math.abs(hash).toString(16).padStart(16, '0')
+  // For edge runtime
+  return Buffer.from(str).toString('base64')
 }
 
-export function verifyPassword(password: string, hash: string): boolean {
-  return hashPassword(password) === hash
+function base64Decode(str: string): string {
+  if (typeof atob !== 'undefined') {
+    return atob(str)
+  }
+  // For edge runtime
+  return Buffer.from(str, 'base64').toString('utf-8')
+}
+
+// Password hashing with bcrypt
+export async function hashPassword(password: string): Promise<string> {
+  const salt = await bcrypt.genSalt(10)
+  return bcrypt.hash(password, salt)
+}
+
+export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  return bcrypt.compare(password, hash)
 }
 
 // Simple session token generation
@@ -31,30 +41,6 @@ export function generateToken(): string {
   return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('')
 }
 
-// Session storage (in production, use database or Redis)
-const sessions = new Map<string, { userId: string; expiresAt: number }>()
-
-export function createSession(userId: string): string {
-  const token = generateToken()
-  const expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000 // 30 days
-  sessions.set(token, { userId, expiresAt })
-  return token
-}
-
-export function getSession(token: string): string | null {
-  const session = sessions.get(token)
-  if (!session) return null
-  if (Date.now() > session.expiresAt) {
-    sessions.delete(token)
-    return null
-  }
-  return session.userId
-}
-
-export function deleteSession(token: string): void {
-  sessions.delete(token)
-}
-
 // Cookie helpers
 export const COOKIE_NAME = 'freelio_session'
 
@@ -67,11 +53,29 @@ export function clearSessionCookie(): string {
 }
 
 // Get user ID from request cookies
-import { cookies } from 'next/headers'
-
 export async function getUserId(): Promise<string | null> {
   const cookieStore = await cookies()
   const token = cookieStore.get(COOKIE_NAME)?.value
   if (!token) return null
-  return getSession(token)
+  
+  // Decode token (it contains userId)
+  try {
+    const decoded = base64Decode(token)
+    const data = JSON.parse(decoded)
+    if (data.expires && Date.now() > data.expires) {
+      return null
+    }
+    return data.userId || null
+  } catch {
+    return null
+  }
+}
+
+// Create session
+export function createSession(userId: string): string {
+  const token = base64Encode(JSON.stringify({ 
+    userId, 
+    expires: Date.now() + 30 * 24 * 60 * 60 * 1000 
+  }))
+  return token
 }

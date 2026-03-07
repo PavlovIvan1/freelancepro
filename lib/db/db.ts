@@ -1,6 +1,24 @@
 import { and, eq } from 'drizzle-orm'
 import { db, schema } from './neon'
 
+// Initialize database on first import
+let dbInitialized = false
+
+async function initializeDatabase() {
+  if (dbInitialized) return
+  
+  try {
+    console.log('Testing PostgreSQL database connection...')
+    // Test connection
+    await db.execute({ sql: 'SELECT 1' })
+    console.log('Database connection successful')
+    dbInitialized = true
+  } catch (error) {
+    console.error('Database initialization error:', error)
+    // Don't throw - allow app to start and create tables on first request
+  }
+}
+
 // Types
 type User = typeof schema.users.$inferSelect
 type NewUser = typeof schema.users.$inferInsert
@@ -264,8 +282,9 @@ export async function updateMonthlyEarning(
 
 // ==================== DATABASE INITIALIZATION ====================
 
-export async function initializeDatabase(): Promise<void> {
-  // For Neon PostgreSQL, tables are created automatically via migrations
-  // This function can be used for any additional setup if needed
-  console.log('Database initialized (PostgreSQL Neon)')
+export async function initDb(): Promise<void> {
+  await initializeDatabase()
 }
+
+export { initializeDatabase }
+

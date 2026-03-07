@@ -2,6 +2,7 @@
 // This file provides the same interface as the JSON database but uses PostgreSQL via Drizzle ORM
 
 import * as db from './db'
+import { initializeDatabase } from './db'
 
 // Types - matching the original JSON interface
 export interface User {
@@ -428,9 +429,8 @@ export async function updateMonthlyEarning(userId: string, month: string, year: 
 // ==================== DATABASE INITIALIZATION ====================
 
 export async function loadDatabase(): Promise<any> {
-  // For PostgreSQL, we don't need to load anything
-  // The connection is established automatically
-  await db.initializeDatabase()
+  // Test connection to PostgreSQL
+  await initializeDatabase()
   return {}
 }
 

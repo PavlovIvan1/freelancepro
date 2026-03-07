@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     }
 
     const id = 'u_' + Math.random().toString(36).slice(2, 11)
-    const passwordHash = hashPassword(password)
+    const passwordHash = await hashPassword(password)
     const now = new Date().toISOString()
 
     // Create user

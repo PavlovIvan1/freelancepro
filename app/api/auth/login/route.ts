@@ -28,7 +28,8 @@ export async function POST(request: Request) {
     }
 
     // Verify password
-    if (!verifyPassword(password, user.password)) {
+    const isValid = await verifyPassword(password, user.password)
+    if (!isValid) {
       return NextResponse.json(
         { error: 'Неверный email или пароль' },
         { status: 401 }
