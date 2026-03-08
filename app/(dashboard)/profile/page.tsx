@@ -13,7 +13,6 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
-import { cn } from '@/lib/utils'
 import { Check, CreditCard, Crown, User } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
@@ -65,15 +64,6 @@ const plans: PaymentPlan[] = [
     features: ['Безлимитные проекты', 'Расширенная аналитика', 'Безлимитные клиенты', 'Экономия 34%'],
     interval: 'год',
     originalPrice: 5880,
-  },
-  {
-    id: 'team',
-    name: 'Team',
-    price: 2490,
-    currency: 'RUB',
-    features: ['Всё из Pro', 'Командная работа', 'До 10 пользователей', 'Общие проекты'],
-    interval: 'месяц',
-    disabled: true,
   },
 ]
 
@@ -188,20 +178,14 @@ export default function ProfilePage() {
       </Card>
 
       {/* Plans */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-3">
         {plans.map((plan) => (
-          <Card key={plan.id} className={cn(
-            currentPlan?.id === plan.id ? 'border-primary' : '',
-            plan.disabled && 'opacity-60'
-          )}>
+          <Card key={plan.id} className={currentPlan?.id === plan.id ? 'border-primary' : ''}>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">{plan.name}</CardTitle>
                 {currentPlan?.id === plan.id && (
                   <Badge variant="secondary">Текущий</Badge>
-                )}
-                {plan.disabled && (
-                  <Badge variant="outline">Скоро</Badge>
                 )}
               </div>
               <div className="text-3xl font-bold mt-2">
@@ -217,12 +201,7 @@ export default function ProfilePage() {
                 <p className="text-xs text-green-600 font-medium">Экономия 34% = 323 ₽/мес</p>
               )}
             </CardHeader>
-            <CardContent className={cn("pt-0", plan.disabled && "relative")}>
-              {plan.disabled && (
-                <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-10 rounded-b-lg">
-                  <span className="text-sm font-medium text-muted-foreground">Скоро</span>
-                </div>
-              )}
+            <CardContent className="pt-0">
               <ul className="space-y-2 mb-4">
                 {plan.features.map((feature, i) => (
                   <li key={i} className="flex items-center text-sm">
@@ -236,9 +215,9 @@ export default function ProfilePage() {
                   variant={plan.id === 'pro' || plan.id === 'pro-year' ? 'default' : 'outline'} 
                   className="w-full"
                   onClick={() => handlePayment(plan)}
-                  disabled={plan.price === 0 || plan.disabled}
+                  disabled={plan.price === 0}
                 >
-                  {plan.price === 0 ? 'Текущий' : plan.disabled ? 'Недоступно' : 'Выбрать'}
+                  {plan.price === 0 ? 'Текущий' : 'Выбрать'}
                 </Button>
               )}
             </CardContent>
