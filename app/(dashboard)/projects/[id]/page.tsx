@@ -10,7 +10,7 @@ import { STATUS_COLORS, STATUS_LABELS, getProgress } from '@/lib/store'
 import { cn } from '@/lib/utils'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-import { use, useEffect, useMemo, useState } from 'react'
+import { use, useEffect, useMemo, useRef, useState } from 'react'
 
 interface Project {
   id: string
@@ -34,6 +34,8 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   const [project, setProject] = useState<Project | null>(null)
   const [client, setClient] = useState<Client | null>(null)
   const [loading, setLoading] = useState(true)
+  const projectRef = useRef<Project | null>(null)
+  projectRef.current = project
 
   useEffect(() => {
     fetch(`/api/projects/${id}`)
@@ -150,7 +152,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
           <TabsTrigger value="notes">Заметки</TabsTrigger>
         </TabsList>
         <TabsContent value="kanban">
-          <KanbanBoard projectId={project.id} onTasksChange={(tasks) => setProject({ ...project, tasks })} />
+          <KanbanBoard projectId={project.id} onTasksChange={(tasks) => setProject(prev => prev ? { ...prev, tasks } : null)} />
         </TabsContent>
         <TabsContent value="notes">
           <NotesEditor projectId={project.id} />

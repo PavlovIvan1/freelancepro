@@ -67,12 +67,15 @@ export function KanbanBoard({ projectId, onTasksChange }: Props) {
 
   // Notify parent when tasks change (only when tasks array reference changes)
   const prevTasksRef = useRef<Task[] | null>(null)
+  const onTasksChangeRef = useRef(onTasksChange)
+  onTasksChangeRef.current = onTasksChange
+  
   useEffect(() => {
-    if (project?.tasks && onTasksChange && prevTasksRef.current !== project.tasks) {
+    if (project?.tasks && onTasksChangeRef.current && prevTasksRef.current !== project.tasks) {
       prevTasksRef.current = project.tasks
-      onTasksChange(project.tasks)
+      onTasksChangeRef.current(project.tasks)
     }
-  }, [project?.tasks, onTasksChange])
+  }, [project?.tasks])
 
   const tasks = project?.tasks ?? []
 

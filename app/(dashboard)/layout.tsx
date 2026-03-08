@@ -2,14 +2,23 @@
 
 import { AuthGuard } from '@/components/AuthGuard'
 import { Sidebar } from '@/components/sidebar'
-import { usePathname } from 'next/navigation'
+import { useAuth } from '@/hooks/useAuth'
+import { LogOut, User } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const router = useRouter()
+  const { user, logout } = useAuth()
   
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/'
     return pathname.startsWith(href)
+  }
+
+  const handleLogout = async () => {
+    await logout()
+    router.push('/login')
   }
 
   return (
@@ -22,6 +31,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         {/* Main content */}
         <main className="flex-1 min-h-screen w-full md:ml-60 pb-16 md:pb-0">
+          {/* Mobile Header with profile */}
+          <header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-border">
+            <span className="font-semibold text-foreground">Freelio</span>
+            <div className="relative group">
+              <button className="flex items-center gap-2 p-1.5 rounded-full bg-foreground text-background hover:opacity-90 transition-opacity">
+                <User className="w-4 h-4" />
+              </button>
+              {/* Dropdown */}
+              <div className="absolute right-0 top-full mt-1 w-48 bg-card border border-border rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                <div className="px-3 py-2 border-b border-border">
+                  <p className="text-sm font-medium text-foreground truncate">{user?.name || 'Пользователь'}</p>
+                  <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Выйти
+                </button>
+              </div>
+            </div>
+          </header>
+
           {children}
         </main>
 
