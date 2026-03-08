@@ -16,7 +16,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <Button
           variant="ghost"
           size="icon"
-          className="fixed top-3 left-3 z-50 md:hidden"
+          className="fixed top-3 left-3 z-50"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         >
           {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -25,26 +25,31 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Mobile overlay */}
         {mobileMenuOpen && (
           <div 
-            className="fixed inset-0 bg-black/50 z-30 md:hidden"
+            className="fixed inset-0 bg-black/50 z-30"
             onClick={() => setMobileMenuOpen(false)}
           />
         )}
 
-        {/* Sidebar - desktop fixed, mobile slide-out */}
+        {/* Desktop Sidebar only - hidden on mobile */}
+        <div className="hidden md:block">
+          <Sidebar />
+        </div>
+
+        {/* Mobile slide-out menu */}
         <div className={`
-          fixed md:relative z-40 h-full transition-transform duration-300
-          ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+          fixed md:hidden z-40 h-full transition-transform duration-300 w-52
+          ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
         `}>
           <Sidebar />
         </div>
 
         {/* Main content */}
-        <main className="flex-1 min-h-screen md:ml-0 w-full">
+        <main className="flex-1 min-h-screen w-full md:ml-60">
           {children}
         </main>
 
-        {/* Mobile bottom navigation */}
-        <nav className="fixed bottom-0 left-0 right-0 z-30 bg-background border-t border-border md:hidden safe-area-bottom">
+        {/* Mobile bottom navigation only - hidden on desktop */}
+        <nav className="fixed bottom-0 left-0 right-0 z-30 bg-background border-t border-border md:hidden">
           <div className="flex justify-around py-2">
             <a href="/" className="flex flex-col items-center gap-1 px-3 py-2 text-xs text-muted-foreground hover:text-foreground">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
@@ -65,18 +70,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </nav>
       </div>
-      <style jsx global>{`
-        @media (min-width: 768px) {
-          .safe-area-bottom {
-            padding-bottom: env(safe-area-inset-bottom);
-          }
-        }
-        @media (max-width: 767px) {
-          main {
-            padding-bottom: 70px;
-          }
-        }
-      `}</style>
     </AuthGuard>
   )
 }
