@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import { Plus, Trash2 } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 const columns: { id: TaskStatus; label: string }[] = [
   { id: 'todo',        label: 'К выполнению' },
@@ -65,9 +65,11 @@ export function KanbanBoard({ projectId, onTasksChange }: Props) {
     fetchProject()
   }, [fetchProject])
 
-  // Notify parent when tasks change
+  // Notify parent when tasks change (only when tasks array reference changes)
+  const prevTasksRef = useRef<Task[] | null>(null)
   useEffect(() => {
-    if (project?.tasks && onTasksChange) {
+    if (project?.tasks && onTasksChange && prevTasksRef.current !== project.tasks) {
+      prevTasksRef.current = project.tasks
       onTasksChange(project.tasks)
     }
   }, [project?.tasks, onTasksChange])
