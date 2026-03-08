@@ -2,44 +2,13 @@
 
 import { AuthGuard } from '@/components/AuthGuard'
 import { Sidebar } from '@/components/sidebar'
-import { Button } from '@/components/ui/button'
-import { Menu, X } from 'lucide-react'
-import { useState } from 'react'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-
   return (
     <AuthGuard>
       <div className="flex min-h-screen bg-background">
-        {/* Mobile menu button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="fixed top-3 left-3 z-50"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        >
-          {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </Button>
-
-        {/* Mobile overlay */}
-        {mobileMenuOpen && (
-          <div 
-            className="fixed inset-0 bg-black/50 z-30"
-            onClick={() => setMobileMenuOpen(false)}
-          />
-        )}
-
         {/* Desktop Sidebar only - hidden on mobile */}
         <div className="hidden md:block">
-          <Sidebar />
-        </div>
-
-        {/* Mobile slide-out menu */}
-        <div className={`
-          fixed md:hidden z-40 h-full transition-transform duration-300 w-52
-          ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
-        `}>
           <Sidebar />
         </div>
 
