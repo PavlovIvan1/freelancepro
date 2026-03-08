@@ -80,23 +80,23 @@ export default function DashboardPage() {
   )
 
   return (
-    <div className="px-8 py-10 flex flex-col gap-10 w-full">
+    <div className="px-3 md:px-8 py-5 md:py-10 flex flex-col gap-6 md:gap-10 w-full">
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">Добро пожаловать</h1>
+        <h1 className="text-xl md:text-2xl font-semibold text-foreground">Добро пожаловать</h1>
         <p className="text-muted-foreground text-sm mt-1">Обзор вашего бизнеса на сегодня.</p>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-4 gap-px bg-border rounded-xl overflow-hidden border border-border">
+      {/* Stats - Responsive grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border rounded-xl overflow-hidden border border-border">
         {[
-          { label: 'Заработано',         value: `$${stats.totalEarned.toLocaleString()}` },
+          { label: 'Заработано',         value: `${stats.totalEarned.toLocaleString()}` },
           { label: 'Активных проектов',  value: stats.activeProjects },
           { label: 'Задач выполнено',    value: `${stats.doneTasks} / ${stats.totalTasks}` },
           { label: 'Клиентов',           value: clients.length },
         ].map((s) => (
-          <div key={s.label} className="bg-card px-6 py-5">
-            <p className="text-xs text-muted-foreground">{s.label}</p>
-            <p className="text-2xl font-semibold text-foreground mt-1">{s.value}</p>
+          <div key={s.label} className="bg-card px-3 md:px-6 py-3 md:py-5">
+            <p className="text-[10px] md:text-xs text-muted-foreground">{s.label}</p>
+            <p className="text-lg md:text-2xl font-semibold text-foreground mt-1">{s.value}</p>
           </div>
         ))}
       </div>
@@ -129,7 +129,7 @@ export default function DashboardPage() {
             Все проекты →
           </Link>
         </div>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {recentProjects.map((p) => (
             <Link key={p.id} href={`/projects/${p.id}`} className="block group">
               <div className="bg-card border border-border rounded-xl p-4 hover:bg-muted/50 transition-colors">

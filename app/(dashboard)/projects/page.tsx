@@ -154,14 +154,14 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="px-8 py-10 flex flex-col gap-6 w-full">
-      <div className="flex items-center justify-between">
+    <div className="px-3 md:px-8 py-5 md:py-10 flex flex-col gap-4 md:gap-6 w-full">
+      <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Проекты</h1>
+          <h1 className="text-xl md:text-2xl font-semibold text-foreground">Проекты</h1>
           <p className="text-muted-foreground text-sm mt-1">{projects.length} проектов</p>
         </div>
-        <Button onClick={() => setOpen(true)} className="gap-2">
-          <Plus className="w-4 h-4" /> Новый проект
+        <Button onClick={() => setOpen(true)} className="gap-2 text-sm">
+          <Plus className="w-4 h-4" /> <span className="hidden sm:inline">Новый проект</span>
         </Button>
       </div>
 
@@ -194,39 +194,43 @@ export default function ProjectsPage() {
         </div>
       </div>
 
-      {/* List */}
-      <div className="flex flex-col divide-y divide-border border border-border rounded-xl overflow-hidden">
+      {/* List - Responsive cards */}
+      <div className="flex flex-col sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
         {filtered.map((project) => {
           const progress = getProgress(project.tasks || [])
           return (
-            <div key={project.id} className="relative flex items-center gap-4 px-5 py-4 bg-card hover:bg-muted/30 transition-colors">
+            <div key={project.id} className="relative bg-card border border-border rounded-xl p-4 hover:bg-muted/30 transition-colors">
               <Link href={`/projects/${project.id}`} className="absolute inset-0" aria-label={project.name} />
-              <div className="flex-1 min-w-0 pointer-events-none">
-                <p className="text-sm font-medium text-foreground">{project.name}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{clientMap[project.clientId || ''] ?? '—'}</p>
+              <div className="flex items-start justify-between gap-2 mb-3 pointer-events-none">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">{project.name}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5 truncate">{clientMap[project.clientId || ''] ?? '—'}</p>
+                </div>
+                <Button
+                  variant="ghost" size="icon"
+                  className="h-7 w-7 text-muted-foreground hover:text-destructive shrink-0 relative z-10"
+                  onClick={(e) => { e.preventDefault(); handleDelete(project.id) }}
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </Button>
               </div>
-              <div className="flex items-center gap-2 w-32 pointer-events-none">
-                <Progress value={progress} className="h-1.5 flex-1" />
-                <span className="text-[11px] text-muted-foreground w-7 text-right">{progress}%</span>
+              <div className="flex items-center justify-between gap-3 pointer-events-none">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <Progress value={progress} className="h-1.5 flex-1" />
+                  <span className="text-[11px] text-muted-foreground whitespace-nowrap">{progress}%</span>
+                </div>
+                <span className="text-sm font-medium text-foreground whitespace-nowrap">${project.budget.toLocaleString()}</span>
               </div>
-              <span className="text-sm font-medium text-foreground w-24 text-right pointer-events-none">
-                ${project.budget.toLocaleString()}
-              </span>
-              <span className={cn('text-[10px] font-medium px-2 py-0.5 rounded-full w-20 text-center shrink-0 pointer-events-none', STATUS_COLORS[project.status])}>
-                {STATUS_LABELS[project.status as keyof typeof STATUS_LABELS] || project.status}
-              </span>
-              <Button
-                variant="ghost" size="icon"
-                className="h-7 w-7 text-muted-foreground hover:text-destructive shrink-0 relative z-10"
-                onClick={(e) => { e.preventDefault(); handleDelete(project.id) }}
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </Button>
+              <div className="mt-3 pointer-events-none">
+                <span className={cn('text-[10px] font-medium px-2 py-0.5 rounded-full', STATUS_COLORS[project.status])}>
+                  {STATUS_LABELS[project.status as keyof typeof STATUS_LABELS] || project.status}
+                </span>
+              </div>
             </div>
           )
         })}
         {filtered.length === 0 && (
-          <p className="text-sm text-muted-foreground px-5 py-8 text-center">Проекты не найдены.</p>
+          <p className="text-sm text-muted-foreground py-8 text-center col-span-full">Проекты не найдены.</p>
         )}
       </div>
 

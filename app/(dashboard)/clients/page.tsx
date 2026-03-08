@@ -106,14 +106,14 @@ export default function ClientsPage() {
   }
 
   return (
-    <div className="px-8 py-10 flex flex-col gap-6 w-full">
-      <div className="flex items-center justify-between">
+    <div className="px-3 md:px-8 py-5 md:py-10 flex flex-col gap-4 md:gap-6 w-full">
+      <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Клиенты</h1>
+          <h1 className="text-xl md:text-2xl font-semibold text-foreground">Клиенты</h1>
           <p className="text-muted-foreground text-sm mt-1">{clients.length} клиентов</p>
         </div>
-        <Button onClick={() => handleOpen()} className="gap-2">
-          <Plus className="w-4 h-4" /> Новый клиент
+        <Button onClick={() => handleOpen()} className="gap-2 text-sm">
+          <Plus className="w-4 h-4" /> <span className="hidden sm:inline">Новый клиент</span>
         </Button>
       </div>
 
@@ -121,12 +121,12 @@ export default function ClientsPage() {
         {clients.map((client) => {
           const stats = clientStats[client.id] || { count: 0, budget: 0 }
           return (
-            <div key={client.id} className="flex items-center gap-4 p-4 bg-card border border-border rounded-xl hover:bg-muted/50 transition-colors">
+            <div key={client.id} className="flex items-center gap-3 md:gap-4 p-3 md:p-4 bg-card border border-border rounded-xl hover:bg-muted/50 transition-colors">
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-foreground">{client.name}</p>
-                <p className="text-sm text-muted-foreground">{client.email || '—'} · {client.company || '—'}</p>
+                <p className="font-medium text-foreground truncate">{client.name}</p>
+                <p className="text-xs md:text-sm text-muted-foreground truncate">{client.email || '—'} · {client.company || '—'}</p>
               </div>
-              <div className="text-right shrink-0">
+              <div className="text-right shrink-0 hidden sm:block">
                 <p className="text-sm font-medium text-foreground">{stats.count} проектов</p>
                 <p className="text-xs text-muted-foreground">${stats.budget.toLocaleString()}</p>
               </div>

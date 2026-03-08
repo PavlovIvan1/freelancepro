@@ -93,10 +93,10 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   }
 
   return (
-    <div className="px-8 py-8 flex flex-col gap-6 w-full">
+    <div className="px-3 md:px-8 py-5 md:py-8 flex flex-col gap-4 md:gap-6 w-full">
       <Link href="/projects">
         <Button variant="ghost" size="sm" className="gap-2 -ml-2 h-8 text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="w-4 h-4" /> Проекты
+          <ArrowLeft className="w-4 h-4" /> <span className="hidden sm:inline">Проекты</span>
         </Button>
       </Link>
 
@@ -124,19 +124,19 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         </div>
       </div>
 
-      {/* Meta */}
-      <div className="grid grid-cols-3 gap-px bg-border rounded-xl overflow-hidden border border-border">
-        <div className="bg-card px-5 py-4">
+      {/* Meta - Responsive grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-border rounded-xl overflow-hidden border border-border">
+        <div className="bg-card px-4 md:px-5 py-3 md:py-4">
           <p className="text-xs text-muted-foreground">Клиент</p>
-          <p className="text-sm font-medium text-foreground mt-1">{client?.name ?? '—'}</p>
-          {client?.company && <p className="text-xs text-muted-foreground">{client.company}</p>}
+          <p className="text-sm font-medium text-foreground mt-1 truncate">{client?.name ?? '—'}</p>
+          {client?.company && <p className="text-xs text-muted-foreground truncate">{client.company}</p>}
         </div>
-        <div className="bg-card px-5 py-4">
+        <div className="bg-card px-4 md:px-5 py-3 md:py-4">
           <p className="text-xs text-muted-foreground">Бюджет</p>
           <p className="text-sm font-medium text-foreground mt-1">${project.budget.toLocaleString()}</p>
           <p className="text-xs text-muted-foreground">Заработано: ${(project.earnedAmount || 0).toLocaleString()}</p>
         </div>
-        <div className="bg-card px-5 py-4 flex flex-col gap-2">
+        <div className="bg-card px-4 md:px-5 py-3 md:py-4 flex flex-col gap-2">
           <p className="text-xs text-muted-foreground">Прогресс задач</p>
           <Progress value={progress} className="h-1.5 mt-1" />
           <p className="text-xs text-muted-foreground">{doneTasks} из {totalTasks} выполнено</p>

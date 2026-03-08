@@ -126,7 +126,7 @@ export function KanbanBoard({ projectId, onTasksChange }: Props) {
         </Button>
       </div>
 
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
         {columns.map((col) => {
           const colTasks = tasks.filter((t) => t.status === col.id)
           return (
