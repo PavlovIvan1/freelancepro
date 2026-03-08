@@ -46,8 +46,7 @@ export async function GET(request: Request) {
         email: user.email,
         name: user.name,
         planId: user.subscriptionPlan,
-        subscriptionExpiresAt: user.subscriptionExpiresAt || null,
-        subscriptionPeriod: user.subscriptionPeriod || 'month'
+        subscriptionExpiresAt: user.subscriptionExpiresAt || null
       }
     })
   } catch (error) {

@@ -8,7 +8,6 @@ export const users = pgTable('users', {
   name: varchar('name', { length: 255 }).notNull(),
   subscriptionId: varchar('subscription_id', { length: 100 }),
   subscriptionPlan: varchar('subscription_plan', { length: 20 }).default('free'),
-  subscriptionPeriod: varchar('subscription_period', { length: 10 }).default('month'),
   subscriptionExpiresAt: timestamp('subscription_expires_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),

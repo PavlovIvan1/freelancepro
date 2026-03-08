@@ -19,7 +19,6 @@ export interface User {
   name: string;
   subscriptionId: string | null;
   subscriptionPlan: string;
-  subscriptionPeriod: string;
   subscriptionExpiresAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -33,7 +32,6 @@ export async function createUser(user: User): Promise<User> {
     name: user.name,
     subscriptionId: user.subscriptionId,
     subscriptionPlan: user.subscriptionPlan || 'free',
-    subscriptionPeriod: user.subscriptionPeriod || 'month',
     subscriptionExpiresAt: user.subscriptionExpiresAt ? new Date(user.subscriptionExpiresAt) : null,
     createdAt: new Date(user.createdAt),
     updatedAt: new Date(user.updatedAt),
@@ -43,7 +41,6 @@ export async function createUser(user: User): Promise<User> {
     ...created,
     subscriptionId: created.subscriptionId || null,
     subscriptionPlan: created.subscriptionPlan || 'free',
-    subscriptionPeriod: created.subscriptionPeriod || 'month',
     subscriptionExpiresAt: toISO(created.subscriptionExpiresAt),
     createdAt: toISO(created.createdAt),
     updatedAt: toISO(created.updatedAt),
@@ -57,7 +54,6 @@ export async function getUserByEmail(email: string): Promise<User | undefined> {
     ...user,
     subscriptionId: user.subscriptionId || null,
     subscriptionPlan: user.subscriptionPlan || 'free',
-    subscriptionPeriod: user.subscriptionPeriod || 'month',
     subscriptionExpiresAt: toISO(user.subscriptionExpiresAt),
     createdAt: toISO(user.createdAt),
     updatedAt: toISO(user.updatedAt),
@@ -71,7 +67,6 @@ export async function getUserById(id: string): Promise<User | undefined> {
     ...user,
     subscriptionId: user.subscriptionId || null,
     subscriptionPlan: user.subscriptionPlan || 'free',
-    subscriptionPeriod: user.subscriptionPeriod || 'month',
     subscriptionExpiresAt: toISO(user.subscriptionExpiresAt),
     createdAt: toISO(user.createdAt),
     updatedAt: toISO(user.updatedAt),
@@ -96,7 +91,6 @@ export async function updateUser(id: string, updates: Partial<User>): Promise<Us
     ...updated,
     subscriptionId: updated.subscriptionId || null,
     subscriptionPlan: updated.subscriptionPlan || 'free',
-    subscriptionPeriod: updated.subscriptionPeriod || 'month',
     subscriptionExpiresAt: toISO(updated.subscriptionExpiresAt),
     createdAt: toISO(updated.createdAt),
     updatedAt: toISO(updated.updatedAt),

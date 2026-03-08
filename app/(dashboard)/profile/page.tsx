@@ -33,7 +33,6 @@ interface UserData {
   phone: string
   planId: string
   subscriptionExpiresAt: string | null
-  subscriptionPeriod: string
 }
 
 const YOOKASSA_CONFIG = {
@@ -79,8 +78,7 @@ export default function ProfilePage() {
     company: '',
     phone: '',
     planId: 'free',
-    subscriptionExpiresAt: null,
-    subscriptionPeriod: 'month'
+    subscriptionExpiresAt: null
   })
 
   // Format date to readable string
@@ -104,6 +102,13 @@ export default function ProfilePage() {
     return days > 0 ? days : 0
   }
 
+  // Check if subscription is likely yearly (more than 60 days)
+  const isYearlySubscription = () => {
+    if (!subscriptionExpiresAt) return false
+    const days = getDaysRemaining()
+    return days !== null && days > 60
+  }
+
   // Load user data from API
   useEffect(() => {
     fetch('/api/auth/me')
@@ -115,8 +120,7 @@ export default function ProfilePage() {
             name: data.user.name || '',
             email: data.user.email || '',
             planId: data.user.planId || 'free',
-            subscriptionExpiresAt: data.user.subscriptionExpiresAt || null,
-            subscriptionPeriod: data.user.subscriptionPeriod || 'month'
+            subscriptionExpiresAt: data.user.subscriptionExpiresAt || null
           }))
           
           // Set current plan based on user's subscription
@@ -127,14 +131,13 @@ export default function ProfilePage() {
             }
           }
           
-          // Set billing period from user's subscription
-          if (data.user.subscriptionPeriod === 'year') {
-            setBillingPeriod('year')
-          }
-          
           // Set subscription expiry
           if (data.user.subscriptionExpiresAt) {
             setSubscriptionExpiresAt(data.user.subscriptionExpiresAt)
+            // Check if yearly on expiry date
+            if (isYearlySubscription()) {
+              setBillingPeriod('year')
+            }
           }
         }
       })
@@ -180,13 +183,16 @@ export default function ProfilePage() {
     setIsLoading(false)
   }
 
-  // Check if plan is current - considers both plan ID and period
-  const isCurrentPlan = (planId: string, period: 'month' | 'year') => {
-    return userData.planId === planId && userData.subscriptionPeriod === period
-  }
-
-  // Check if user has any pro subscription (monthly or yearly)
+  // Check if user has pro subscription
   const hasProSubscription = userData.planId === 'pro'
+  
+  // Current period based on subscription
+  const currentPeriod = isYearlySubscription() ? 'year' : 'month'
+  
+  // Check if the displayed plan matches user's current subscription
+  const isCurrentPlan = (planId: string, period: 'month' | 'year') => {
+    return userData.planId === planId && currentPeriod === period
+  }
 
   const daysRemaining = getDaysRemaining()
 
@@ -219,7 +225,7 @@ export default function ProfilePage() {
                 </CardTitle>
                 <CardDescription>
                   {hasProSubscription 
-                    ? `Оплата ${selectedPeriod === 'year' ? 'год' : 'месяц'}`
+                    ? currentPeriod === 'year' ? 'Оплата за год' : 'Оплата за месяц'
                     : 'Базовые функции'
                   }
                 </CardDescription>
@@ -294,7 +300,7 @@ export default function ProfilePage() {
               ? Math.round(YEARLY_PRICE / 12) 
               : null
             
-            // Check if this specific plan+period is current
+            // Check if this specific plan+period is user's current
             const isCurrent = isCurrentPlan(plan.id, billingPeriod)
             
             return (

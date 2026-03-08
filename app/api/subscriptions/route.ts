@@ -57,7 +57,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { planId, period } = body
+    const { planId } = body
 
     // Get plan
     const plans = await getPaymentPlans()
@@ -68,9 +68,7 @@ export async function POST(request: Request) {
     }
 
     const now = new Date().toISOString()
-    const subscriptionPeriod = period || 'month'
-    const monthsToAdd = subscriptionPeriod === 'year' ? 12 : 1
-    const expiresAt = new Date(Date.now() + monthsToAdd * 30 * 24 * 60 * 60 * 1000).toISOString()
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
 
     // Get existing subscription
     const existingSub = await getSubscriptionByUserId(userId)
@@ -80,7 +78,6 @@ export async function POST(request: Request) {
       // For simplicity, just update user's plan directly
       await updateUser(userId, {
         subscriptionPlan: planId,
-        subscriptionPeriod,
         subscriptionExpiresAt: expiresAt
       })
     } else {
@@ -100,7 +97,6 @@ export async function POST(request: Request) {
       await updateUser(userId, {
         subscriptionId,
         subscriptionPlan: planId,
-        subscriptionPeriod,
         subscriptionExpiresAt: expiresAt
       })
     }
@@ -111,7 +107,6 @@ export async function POST(request: Request) {
         planId,
         planName: plan.name,
         status: 'active',
-        period: subscriptionPeriod,
         expiresAt
       }
     })
