@@ -80,6 +80,7 @@ export function KanbanBoard({ projectId, onTasksChange }: Props) {
   const [dragOver, setDragOver] = useState<TaskStatus | null>(null)
   const [addOpen, setAddOpen] = useState(false)
   const [newTask, setNewTask] = useState(defaultTask)
+  const touchRef = useRef<{startX: number, startY: number, taskId: string} | null>(null)
 
   const handleDrop = useCallback(async (col: TaskStatus) => {
     if (dragging) {
@@ -93,6 +94,40 @@ export function KanbanBoard({ projectId, onTasksChange }: Props) {
     setDragging(null)
     setDragOver(null)
   }, [dragging, projectId, fetchProject])
+
+  // Touch handlers for mobile
+  const handleTouchStart = useCallback((e: React.TouchEvent, taskId: string) => {
+    touchRef.current = {
+      startX: e.touches[0].clientX,
+      startY: e.touches[0].clientY,
+      taskId
+    }
+  }, [])
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!touchRef.current) return
+    
+    const deltaX = e.touches[0].clientX - touchRef.current.startX
+    const deltaY = e.touches[0].clientY - touchRef.current.startY
+    
+    // If moved enough, start dragging
+    if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) {
+      setDragging(touchRef.current.taskId)
+    }
+  }, [])
+
+  const handleTouchEnd = useCallback((e: React.TouchEndEvent, col: TaskStatus) => {
+    if (touchRef.current && dragging) {
+      // Check if dropped over this column
+      const target = e.target as HTMLElement
+      const columnEl = target.closest(`[data-column="${col}"]`)
+      if (columnEl) {
+        handleDrop(col)
+      }
+    }
+    touchRef.current = null
+    setDragging(null)
+  }, [dragging, handleDrop])
 
   const handleAdd = useCallback(async () => {
     if (!newTask.title) return
@@ -132,6 +167,7 @@ export function KanbanBoard({ projectId, onTasksChange }: Props) {
           return (
             <div
               key={col.id}
+              data-column={col.id}
               onDragOver={(e) => { e.preventDefault(); setDragOver(col.id) }}
               onDrop={() => handleDrop(col.id)}
               className={cn(
@@ -149,8 +185,11 @@ export function KanbanBoard({ projectId, onTasksChange }: Props) {
                   draggable
                   onDragStart={() => setDragging(task.id)}
                   onDragEnd={() => setDragging(null)}
+                  onTouchStart={(e) => handleTouchStart(e, task.id)}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={(e) => handleTouchEnd(e, col.id)}
                   className={cn(
-                    'bg-card border border-border rounded-lg p-3 flex flex-col gap-2 cursor-grab active:cursor-grabbing select-none hover:border-foreground/20 transition-colors',
+                    'bg-card border border-border rounded-lg p-3 flex flex-col gap-2 cursor-grab active:cursor-grabbing select-none hover:border-foreground/20 transition-colors touch-none',
                     dragging === task.id && 'opacity-40'
                   )}
                 >
