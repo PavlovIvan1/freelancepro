@@ -1,11 +1,60 @@
 'use client'
 
-import { useMemo } from 'react'
-import { useProjects, useMonthlyEarnings, STATUS_LABELS } from '@/lib/store'
+import { useEffect, useMemo, useState } from 'react'
+import { STATUS_LABELS } from '@/lib/store'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend, LineChart, Line,
 } from 'recharts'
+
+const STATUS_PIE_COLORS: Record<string, string> = {
+  'Активен':  '#10b981',
+  'Завершён': '#0ea5e9',
+  'Пауза':    '#f59e0b',
+  'Отменён':  '#ef4444',
+}
+const NEUTRAL = ['#111', '#555', '#888', '#aaa', '#ccc']
+const tooltipStyle = { background: '#fff', border: '1px solid #eee', borderRadius: 8, fontSize: 12 }
+
+export default function AnalyticsPage() {
+  const [projects, setProjects] = useState<any[]>([])
+  const [monthlyEarnings, setMonthlyEarnings] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    Promise.all([
+      fetch('/api/projects').then(res => res.json()),
+    ])
+      .then(([projectsData]) => {
+        if (Array.isArray(projectsData)) {
+          setProjects(projectsData)
+          
+          // Calculate monthly earnings from completed projects
+          const earningsByMonth: Record<string, number> = {}
+          projectsData.forEach((project: any) => {
+            if (project.status === 'completed' && project.earnedAmount > 0) {
+              const date = new Date(project.updatedAt || project.createdAt)
+              const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+              earningsByMonth[monthKey] = (earningsByMonth[monthKey] || 0) + (project.earnedAmount || 0)
+            }
+          })
+          
+          // Convert to array with month names
+          const months = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек']
+          const currentYear = new Date().getFullYear()
+          const earningsArray = Object.entries(earningsByMonth)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([month, amount]) => ({
+              month: months[parseInt(month.split('-')[1]) - 1] + ' ' + month.split('-')[0],
+              amount
+            }))
+          
+          setMonthlyEarnings(earningsArray)
+        }
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [])
 
 const STATUS_PIE_COLORS: Record<string, string> = {
   'Активен':  '#10b981',
