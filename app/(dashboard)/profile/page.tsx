@@ -23,8 +23,6 @@ interface PaymentPlan {
   currency: string
   features: string[]
   interval: string
-  originalPrice?: number
-  disabled?: boolean
 }
 
 interface UserData {
@@ -56,19 +54,11 @@ const plans: PaymentPlan[] = [
     features: ['Безлимитные проекты', 'Расширенная аналитика', 'Безлимитные клиенты'],
     interval: 'месяц',
   },
-  {
-    id: 'pro-year',
-    name: 'Pro (год)',
-    price: 3880,
-    currency: 'RUB',
-    features: ['Безлимитные проекты', 'Расширенная аналитика', 'Безлимитные клиенты', 'Экономия 34%'],
-    interval: 'год',
-    originalPrice: 5880,
-  },
 ]
 
 export default function ProfilePage() {
   const [currentPlan, setCurrentPlan] = useState<PaymentPlan | null>(plans[0])
+  const [billingPeriod, setBillingPeriod] = useState<'month' | 'year'>('month')
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState<PaymentPlan | null>(null)
   const [paymentStep, setPaymentStep] = useState<'select' | 'processing' | 'success'>('select')
@@ -178,51 +168,92 @@ export default function ProfilePage() {
       </Card>
 
       {/* Plans */}
-      <div className="grid gap-4 md:grid-cols-3">
-        {plans.map((plan) => (
-          <Card key={plan.id} className={currentPlan?.id === plan.id ? 'border-primary' : ''}>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">{plan.name}</CardTitle>
-                {currentPlan?.id === plan.id && (
-                  <Badge variant="secondary">Текущий</Badge>
-                )}
-              </div>
-              <div className="text-3xl font-bold mt-2">
-                {plan.price === 0 ? '0' : plan.price} ₽
-                <span className="text-sm font-normal text-muted-foreground">/{plan.interval}</span>
-                {plan.originalPrice && (
-                  <span className="text-sm font-normal text-muted-foreground line-through ml-2">
-                    {plan.originalPrice} ₽
-                  </span>
-                )}
-              </div>
-              {plan.id === 'pro-year' && (
-                <p className="text-xs text-green-600 font-medium">Экономия 34% = 323 ₽/мес</p>
+      <div className="space-y-4">
+        {/* Billing Period Toggle */}
+        <div className="flex justify-center">
+          <div className="bg-muted rounded-lg p-1 flex">
+            <button
+              onClick={() => setBillingPeriod('month')}
+              className={cn(
+                "px-4 py-2 rounded-md text-sm font-medium transition-all",
+                billingPeriod === 'month' 
+                  ? "bg-background shadow-sm text-foreground" 
+                  : "text-muted-foreground hover:text-foreground"
               )}
-            </CardHeader>
-            <CardContent className="pt-0">
-              <ul className="space-y-2 mb-4">
-                {plan.features.map((feature, i) => (
-                  <li key={i} className="flex items-center text-sm">
-                    <Check className="h-4 w-4 mr-2 text-green-500 shrink-0" />
-                    <span className="text-muted-foreground">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              {currentPlan?.id !== plan.id && (
-                <Button 
-                  variant={plan.id === 'pro' || plan.id === 'pro-year' ? 'default' : 'outline'} 
-                  className="w-full"
-                  onClick={() => handlePayment(plan)}
-                  disabled={plan.price === 0}
-                >
-                  {plan.price === 0 ? 'Текущий' : 'Выбрать'}
-                </Button>
+            >
+              Месяц
+            </button>
+            <button
+              onClick={() => setBillingPeriod('year')}
+              className={cn(
+                "px-4 py-2 rounded-md text-sm font-medium transition-all",
+                billingPeriod === 'year' 
+                  ? "bg-background shadow-sm text-foreground" 
+                  : "text-muted-foreground hover:text-foreground"
               )}
-            </CardContent>
-          </Card>
-        ))}
+            >
+              Год <span className="text-xs text-green-600 ml-1">-34%</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          {plans.map((plan) => {
+            // Calculate price for Pro plan based on billing period
+            const displayPrice = plan.id === 'pro' 
+              ? (billingPeriod === 'year' ? 3880 : plan.price)
+              : plan.price
+            const displayInterval = plan.id === 'pro' 
+              ? (billingPeriod === 'year' ? 'год' : plan.interval)
+              : plan.interval
+            const originalPrice = plan.id === 'pro' && billingPeriod === 'year' ? 5880 : null
+            
+            return (
+              <Card key={plan.id} className={currentPlan?.id === plan.id ? 'border-primary' : ''}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">{plan.name}</CardTitle>
+                    {currentPlan?.id === plan.id && (
+                      <Badge variant="secondary">Текущий</Badge>
+                    )}
+                  </div>
+                  <div className="text-3xl font-bold mt-2">
+                    {displayPrice === 0 ? '0' : displayPrice} ₽
+                    <span className="text-sm font-normal text-muted-foreground">/{displayInterval}</span>
+                    {originalPrice && (
+                      <span className="text-sm font-normal text-muted-foreground line-through ml-2">
+                        {originalPrice} ₽
+                      </span>
+                    )}
+                  </div>
+                  {plan.id === 'pro' && billingPeriod === 'year' && (
+                    <p className="text-xs text-green-600 font-medium">Экономия 34% = 323 ₽/мес</p>
+                  )}
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <ul className="space-y-2 mb-4">
+                    {plan.features.map((feature, i) => (
+                      <li key={i} className="flex items-center text-sm">
+                        <Check className="h-4 w-4 mr-2 text-green-500 shrink-0" />
+                        <span className="text-muted-foreground">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  {currentPlan?.id !== plan.id && (
+                    <Button 
+                      variant={plan.id === 'pro' ? 'default' : 'outline'} 
+                      className="w-full"
+                      onClick={() => handlePayment({...plan, price: displayPrice, interval: displayInterval})}
+                      disabled={plan.price === 0}
+                    >
+                      {plan.price === 0 ? 'Текущий' : 'Выбрать'}
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            )
+          })}
+        </div>
       </div>
 
       <Separator />
