@@ -16,11 +16,14 @@ export interface CreatePaymentParams {
   userId: string
   planId: string
   returnUrl: string
+  metadata?: {
+    period?: string
+  }
 }
 
 // Create payment using YooKassa API directly
 export async function createPayment(params: CreatePaymentParams) {
-  const { amount, description, userId, planId, returnUrl } = params
+  const { amount, description, userId, planId, returnUrl, metadata } = params
 
   const paymentData = {
     amount: {
@@ -31,6 +34,7 @@ export async function createPayment(params: CreatePaymentParams) {
     metadata: {
       userId,
       planId,
+      ...metadata
     },
     payment_method_data: {
       type: 'bank_card',

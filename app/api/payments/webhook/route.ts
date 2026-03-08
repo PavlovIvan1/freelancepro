@@ -1,5 +1,5 @@
 import { initDb } from '@/lib/db/db'
-import { createPayment, updateUser } from '@/lib/db/json-db'
+import { createPayment, getUserById, updateUser } from '@/lib/db/json-db'
 import { NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
@@ -19,16 +19,41 @@ export async function POST(request: Request) {
       
       const userId = payment.metadata?.userId
       const planId = payment.metadata?.planId
+      const period = payment.metadata?.period || 'month'
       
       if (userId) {
-        // Calculate subscription expiry (30 days)
-        const expiresAt = new Date()
-        expiresAt.setDate(expiresAt.getDate() + 30)
+        // Get current user to check existing subscription
+        const currentUser = await getUserById(userId)
+        
+        // Determine days to add based on period
+        const daysToAdd = period === 'year' ? 365 : 30
+        
+        let newExpiresAt: Date
+        
+        if (currentUser?.subscriptionExpiresAt) {
+          // Check if current subscription is still valid
+          const currentExpires = new Date(currentUser.subscriptionExpiresAt)
+          const now = new Date()
+          
+          if (currentExpires > now) {
+            // Extend from current expiry date
+            currentExpires.setDate(currentExpires.getDate() + daysToAdd)
+            newExpiresAt = currentExpires
+          } else {
+            // Start fresh from now
+            newExpiresAt = new Date()
+            newExpiresAt.setDate(newExpiresAt.getDate() + daysToAdd)
+          }
+        } else {
+          // No existing subscription, start from now
+          newExpiresAt = new Date()
+          newExpiresAt.setDate(newExpiresAt.getDate() + daysToAdd)
+        }
         
         // Update user's subscription
         await updateUser(userId, {
           subscriptionPlan: planId,
-          subscriptionExpiresAt: expiresAt.toISOString()
+          subscriptionExpiresAt: newExpiresAt.toISOString()
         })
         
         // Create payment record
@@ -43,7 +68,7 @@ export async function POST(request: Request) {
           createdAt: new Date().toISOString()
         })
         
-        console.log(`Payment succeeded for user ${userId}, plan: ${planId}`)
+        console.log(`Payment succeeded for user ${userId}, plan: ${planId}, period: ${period}, expires: ${newExpiresAt.toISOString()}`)
       }
     } else if (event === 'payment.canceled') {
       const payment = body.object

@@ -19,8 +19,8 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { planId } = body
-    console.log('Plan ID:', planId)
+    const { planId, period } = body
+    console.log('Plan ID:', planId, 'Period:', period)
 
     // Get payment plans
     const plans = await getPaymentPlans()
@@ -36,24 +36,32 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Бесплатный тариф не требует оплаты' }, { status: 400 })
     }
 
-    const returnUrl = `${process.env.YOOKASSA_RETURN_URL || 'https://freelancepro-one.vercel.app/profile'}?planId=${planId}`
+    // Determine amount based on period
+    const isYearly = period === 'year'
+    const amount = isYearly ? 3880 : Number(plan.price)
+    const periodLabel = isYearly ? 'год' : 'месяц'
+    
+    const returnUrl = `${process.env.YOOKASSA_RETURN_URL || 'https://freelancepro-one.vercel.app/profile'}?planId=${planId}&period=${period}`
     console.log('Return URL:', returnUrl)
     
     // Create YooKassa payment
     console.log('Creating YooKassa payment with:', {
-      amount: Number(plan.price),
-      description: `Оплата тарифа "${plan.name}" - FreelancePro`,
+      amount,
+      description: `Оплата тарифа "${plan.name}" (${periodLabel}) - FreelancePro`,
       userId,
       planId,
       returnUrl
     })
     
     const payment = await createPayment({
-      amount: Number(plan.price),
-      description: `Оплата тарифа "${plan.name}" - FreelancePro`,
+      amount,
+      description: `Оплата тарифа "${plan.name}" (${periodLabel}) - FreelancePro`,
       userId,
       planId,
-      returnUrl
+      returnUrl,
+      metadata: {
+        period: period || 'month'
+      }
     })
     
     console.log('Payment created:', payment)

@@ -57,7 +57,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { planId } = body
+    const { planId, period } = body
 
     // Get plan
     const plans = await getPaymentPlans()
@@ -67,18 +67,43 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Тариф не найден' }, { status: 400 })
     }
 
+    // Determine billing period (month = 30 days, year = 365 days)
+    const isYearly = period === 'year'
+    const daysToAdd = isYearly ? 365 : 30
+
     const now = new Date().toISOString()
-    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+    
+    // Get current user to check existing subscription
+    const currentUser = await getUserById(userId)
+    let newExpiresAt: string
+
+    if (currentUser?.subscriptionExpiresAt) {
+      // Check if current subscription is still valid
+      const currentExpires = new Date(currentUser.subscriptionExpiresAt)
+      const nowDate = new Date()
+      
+      if (currentExpires > nowDate) {
+        // Extend from current expiry date
+        const extendedDate = new Date(currentExpires)
+        extendedDate.setDate(extendedDate.getDate() + daysToAdd)
+        newExpiresAt = extendedDate.toISOString()
+      } else {
+        // Start fresh from now
+        newExpiresAt = new Date(Date.now() + daysToAdd * 24 * 60 * 60 * 1000).toISOString()
+      }
+    } else {
+      // No existing subscription, start from now
+      newExpiresAt = new Date(Date.now() + daysToAdd * 24 * 60 * 60 * 1000).toISOString()
+    }
 
     // Get existing subscription
     const existingSub = await getSubscriptionByUserId(userId)
     
     if (existingSub) {
       // Update existing subscription
-      // For simplicity, just update user's plan directly
       await updateUser(userId, {
         subscriptionPlan: planId,
-        subscriptionExpiresAt: expiresAt
+        subscriptionExpiresAt: newExpiresAt
       })
     } else {
       // Create new subscription
@@ -89,7 +114,7 @@ export async function POST(request: Request) {
         planId,
         status: 'active',
         startDate: now,
-        endDate: expiresAt,
+        endDate: newExpiresAt,
         createdAt: now
       })
 
@@ -97,7 +122,7 @@ export async function POST(request: Request) {
       await updateUser(userId, {
         subscriptionId,
         subscriptionPlan: planId,
-        subscriptionExpiresAt: expiresAt
+        subscriptionExpiresAt: newExpiresAt
       })
     }
 
@@ -107,7 +132,8 @@ export async function POST(request: Request) {
         planId,
         planName: plan.name,
         status: 'active',
-        expiresAt
+        period: isYearly ? 'year' : 'month',
+        expiresAt: newExpiresAt
       }
     })
   } catch (error) {
