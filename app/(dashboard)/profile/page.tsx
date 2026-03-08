@@ -31,6 +31,9 @@ interface UserData {
   email: string
   company: string
   phone: string
+  planId: string
+  subscriptionExpiresAt: string | null
+  subscriptionPeriod: string
 }
 
 const YOOKASSA_CONFIG = {
@@ -57,20 +60,49 @@ const plans: PaymentPlan[] = [
   },
 ]
 
+// Yearly plan price
+const YEARLY_PRICE = 3880
+
 export default function ProfilePage() {
   const [currentPlan, setCurrentPlan] = useState<PaymentPlan | null>(plans[0])
   const [billingPeriod, setBillingPeriod] = useState<'month' | 'year'>('month')
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState<PaymentPlan | null>(null)
+  const [selectedPeriod, setSelectedPeriod] = useState<'month' | 'year'>('month')
   const [paymentStep, setPaymentStep] = useState<'select' | 'processing' | 'success'>('select')
   const [isLoading, setIsLoading] = useState(false)
+  const [subscriptionExpiresAt, setSubscriptionExpiresAt] = useState<string | null>(null)
 
   const [userData, setUserData] = useState<UserData>({
     name: '',
     email: '',
     company: '',
     phone: '',
+    planId: 'free',
+    subscriptionExpiresAt: null,
+    subscriptionPeriod: 'month'
   })
+
+  // Format date to readable string
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return ''
+    const date = new Date(dateString)
+    return date.toLocaleDateString('ru-RU', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    })
+  }
+
+  // Calculate days remaining
+  const getDaysRemaining = () => {
+    if (!subscriptionExpiresAt) return null
+    const now = new Date()
+    const expires = new Date(subscriptionExpiresAt)
+    const diff = expires.getTime() - now.getTime()
+    const days = Math.ceil(diff / (1000 * 60 * 60 * 24))
+    return days > 0 ? days : 0
+  }
 
   // Load user data from API
   useEffect(() => {
@@ -82,6 +114,9 @@ export default function ProfilePage() {
             ...prev,
             name: data.user.name || '',
             email: data.user.email || '',
+            planId: data.user.planId || 'free',
+            subscriptionExpiresAt: data.user.subscriptionExpiresAt || null,
+            subscriptionPeriod: data.user.subscriptionPeriod || 'month'
           }))
           
           // Set current plan based on user's subscription
@@ -91,14 +126,25 @@ export default function ProfilePage() {
               setCurrentPlan(userPlan)
             }
           }
+          
+          // Set billing period from user's subscription
+          if (data.user.subscriptionPeriod === 'year') {
+            setBillingPeriod('year')
+          }
+          
+          // Set subscription expiry
+          if (data.user.subscriptionExpiresAt) {
+            setSubscriptionExpiresAt(data.user.subscriptionExpiresAt)
+          }
         }
       })
       .catch(console.error)
   }, [])
 
-  const handlePayment = async (plan: PaymentPlan) => {
+  const handlePayment = async (plan: PaymentPlan, period: 'month' | 'year') => {
     if (plan.price === 0) return
     setSelectedPlan(plan)
+    setSelectedPeriod(period)
     setIsPaymentDialogOpen(true)
     setPaymentStep('select')
   }
@@ -112,7 +158,10 @@ export default function ProfilePage() {
       const res = await fetch('/api/payments/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ planId: selectedPlan.id })
+        body: JSON.stringify({ 
+          planId: selectedPlan.id,
+          period: selectedPeriod
+        })
       })
       
       const data = await res.json()
@@ -131,6 +180,16 @@ export default function ProfilePage() {
     setIsLoading(false)
   }
 
+  // Check if plan is current - considers both plan ID and period
+  const isCurrentPlan = (planId: string, period: 'month' | 'year') => {
+    return userData.planId === planId && userData.subscriptionPeriod === period
+  }
+
+  // Check if user has any pro subscription (monthly or yearly)
+  const hasProSubscription = userData.planId === 'pro'
+
+  const daysRemaining = getDaysRemaining()
+
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
       <div>
@@ -138,37 +197,58 @@ export default function ProfilePage() {
         <p className="text-muted-foreground mt-1">Управление аккаунтом и подпиской</p>
       </div>
 
-      {/* Current Plan */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <div className="flex items-center gap-3">
-            <Crown className="h-5 w-5 text-amber-500" />
-            <div>
-              <CardTitle className="text-lg">Текущий тариф: {currentPlan?.name}</CardTitle>
-              <CardDescription>
-                {currentPlan?.price === 0 ? 'Бесплатный план' : `${currentPlan?.price} ₽/${currentPlan?.interval}`}
-              </CardDescription>
+      {/* Current Plan - Minimalist */}
+      <Card className={cn(
+        hasProSubscription 
+          ? "bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30 border-amber-200 dark:border-amber-800" 
+          : "bg-muted/30"
+      )}>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {hasProSubscription ? (
+                <Crown className="h-6 w-6 text-amber-500" />
+              ) : (
+                <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center">
+                  <span className="text-xs font-medium">F</span>
+                </div>
+              )}
+              <div>
+                <CardTitle className="text-lg">
+                  {hasProSubscription ? `Тариф ${currentPlan?.name}` : 'Бесплатный план'}
+                </CardTitle>
+                <CardDescription>
+                  {hasProSubscription 
+                    ? `Оплата ${selectedPeriod === 'year' ? 'год' : 'месяц'}`
+                    : 'Базовые функции'
+                  }
+                </CardDescription>
+              </div>
             </div>
+            <Badge variant={hasProSubscription ? 'default' : 'secondary'} className={cn(
+              hasProSubscription && "bg-amber-500 hover:bg-amber-600"
+            )}>
+              {hasProSubscription ? 'Активен' : 'Бесплатный'}
+            </Badge>
           </div>
-          <Badge variant={currentPlan?.id !== 'free' ? 'default' : 'secondary'}>
-            {currentPlan?.id === 'free' ? 'Бесплатный' : 'Активен'}
-          </Badge>
         </CardHeader>
-        {currentPlan?.id !== 'pro' && (
-          <CardContent>
-            <Button 
-              variant={currentPlan?.id === 'free' ? 'default' : 'outline'}
-              onClick={() => {
-                handlePayment(plans[1]!)
-              }}
-            >
-              {currentPlan?.id === 'free' ? 'Перейти на Pro' : 'Перейти на Pro'}
-            </Button>
+        {hasProSubscription && subscriptionExpiresAt && (
+          <CardContent className="pt-0">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">
+                Действует до {formatDate(subscriptionExpiresAt)}
+              </span>
+              {daysRemaining !== null && daysRemaining > 0 && (
+                <span className="text-amber-600 font-medium">
+                  {daysRemaining} дн. осталось
+                </span>
+              )}
+            </div>
           </CardContent>
         )}
       </Card>
 
-      {/* Plans */}
+      {/* Plans - Minimalist */}
       <div className="space-y-4">
         {/* Billing Period Toggle */}
         <div className="flex justify-center">
@@ -176,7 +256,7 @@ export default function ProfilePage() {
             <button
               onClick={() => setBillingPeriod('month')}
               className={cn(
-                "px-4 py-2 rounded-md text-sm font-medium transition-all hover:bg-background/50",
+                "px-4 py-2 rounded-md text-sm font-medium transition-all",
                 billingPeriod === 'month' 
                   ? "bg-background shadow-sm text-foreground" 
                   : "text-muted-foreground hover:text-foreground"
@@ -187,7 +267,7 @@ export default function ProfilePage() {
             <button
               onClick={() => setBillingPeriod('year')}
               className={cn(
-                "px-4 py-2 rounded-md text-sm font-medium transition-all hover:bg-background/50",
+                "px-4 py-2 rounded-md text-sm font-medium transition-all",
                 billingPeriod === 'year' 
                   ? "bg-background shadow-sm text-foreground" 
                   : "text-muted-foreground hover:text-foreground"
@@ -201,60 +281,75 @@ export default function ProfilePage() {
         <div className="grid gap-4 md:grid-cols-2">
           {plans.map((plan) => {
             // Calculate price for Pro plan based on billing period
-            const displayPrice = plan.id === 'pro' 
-              ? (billingPeriod === 'year' ? 3880 : plan.price)
+            const isPro = plan.id === 'pro'
+            const displayPrice = isPro 
+              ? (billingPeriod === 'year' ? YEARLY_PRICE : plan.price)
               : plan.price
-            const displayInterval = plan.id === 'pro' 
-              ? (billingPeriod === 'year' ? 'год' : plan.interval)
-              : plan.interval
-            const originalPrice = plan.id === 'pro' && billingPeriod === 'year' ? 5880 : null
+            const periodLabel = isPro 
+              ? (billingPeriod === 'year' ? 'год' : 'месяц')
+              : 'месяц'
+            
+            // Calculate per-month price for yearly plan
+            const perMonthPrice = isPro && billingPeriod === 'year' 
+              ? Math.round(YEARLY_PRICE / 12) 
+              : null
+            
+            // Check if this specific plan+period is current
+            const isCurrent = isCurrentPlan(plan.id, billingPeriod)
             
             return (
               <Card key={plan.id} className={cn(
-                currentPlan?.id === plan.id ? 'border-primary' : '',
-                'transition-all hover:shadow-md hover:border-foreground/20'
+                isCurrent ? 'border-primary bg-primary/5' : 'bg-background',
+                'transition-all'
               )}>
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{plan.name}</CardTitle>
-                    {currentPlan?.id === plan.id && (
-                      <Badge variant="secondary">Текущий</Badge>
-                    )}
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      {plan.name}
+                      {isCurrent && (
+                        <Badge variant="outline" className="text-xs border-primary text-primary">
+                          Текущий
+                        </Badge>
+                      )}
+                    </CardTitle>
                   </div>
-                  <div className="text-3xl font-bold mt-2">
-                    {displayPrice === 0 ? '0' : displayPrice} ₽
-                    <span className="text-sm font-normal text-muted-foreground">/{displayInterval}</span>
-                    {originalPrice && (
-                      <span className="text-sm font-normal text-muted-foreground line-through ml-2">
-                        {originalPrice} ₽
-                      </span>
-                    )}
+                  <div className="flex items-baseline gap-1 mt-2">
+                    <span className="text-3xl font-bold">
+                      {displayPrice === 0 ? '0' : displayPrice}
+                    </span>
+                    <span className="text-sm text-muted-foreground">₽/{periodLabel}</span>
                   </div>
-                  {plan.id === 'pro' && billingPeriod === 'year' && (
-                    <p className="text-xs text-green-600 font-medium">Экономия 34% = 323 ₽/мес</p>
+                  {perMonthPrice && (
+                    <p className="text-sm text-green-600 font-medium">
+                      = {perMonthPrice} ₽/мес
+                    </p>
                   )}
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <ul className="space-y-2 mb-4">
+                  {/* Minimalist features - compact list */}
+                  <div className="space-y-1.5 mb-4">
                     {plan.features.map((feature, i) => (
-                      <li key={i} className="flex items-center text-sm">
-                        <Check className="h-4 w-4 mr-2 text-green-500 shrink-0" />
-                        <span className="text-muted-foreground">{feature}</span>
-                      </li>
+                      <div key={i} className="flex items-center text-sm text-muted-foreground">
+                        <Check className="h-3.5 w-3.5 mr-2 text-green-500 shrink-0" />
+                        {feature}
+                      </div>
                     ))}
-                  </ul>
-                  {currentPlan?.id !== plan.id && (
+                  </div>
+                  
+                  {!isCurrent && (
                     <Button 
                       variant={plan.id === 'pro' ? 'default' : 'outline'} 
-                      className={cn(
-                        "w-full transition-all hover:opacity-90",
-                        plan.id === 'pro' && 'hover:opacity-80'
-                      )}
-                      onClick={() => handlePayment({...plan, price: displayPrice, interval: displayInterval})}
+                      className="w-full"
+                      onClick={() => handlePayment(plan, billingPeriod)}
                       disabled={plan.price === 0}
                     >
                       {plan.price === 0 ? 'Текущий' : 'Выбрать'}
                     </Button>
+                  )}
+                  {isCurrent && plan.id === 'pro' && (
+                    <div className="text-sm text-center text-muted-foreground py-2">
+                      {billingPeriod === 'year' ? 'Годовая подписка' : 'Месячная подписка'}
+                    </div>
                   )}
                 </CardContent>
               </Card>
@@ -331,15 +426,32 @@ export default function ProfilePage() {
 
           {paymentStep === 'select' && selectedPlan && (
             <div className="space-y-4">
-              <div className="p-4 border rounded-lg">
+              <div className="p-4 border rounded-lg space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Тариф:</span>
                   <span className="font-medium">{selectedPlan.name}</span>
                 </div>
-                <div className="flex justify-between items-center mt-2">
-                  <span className="text-muted-foreground">К оплате:</span>
-                  <span className="text-2xl font-bold">{selectedPlan.price} ₽</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Период:</span>
+                  <span className="font-medium">
+                    {selectedPeriod === 'year' ? 'Год (12 месяцев)' : 'Месяц'}
+                  </span>
                 </div>
+                <Separator className="my-2" />
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">К оплате:</span>
+                  <span className="text-2xl font-bold">
+                    {selectedPlan.id === 'pro' 
+                      ? (selectedPeriod === 'year' ? YEARLY_PRICE : selectedPlan.price)
+                      : 0
+                    } ₽
+                  </span>
+                </div>
+                {selectedPeriod === 'year' && selectedPlan.id === 'pro' && (
+                  <p className="text-xs text-green-600 text-right">
+                    Экономия 34% по сравнению с помесячной оплатой
+                  </p>
+                )}
               </div>
 
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -352,7 +464,9 @@ export default function ProfilePage() {
                 onClick={processYooKassaPayment}
                 disabled={isLoading}
               >
-                {isLoading ? 'Обработка...' : `Оплатить ${selectedPlan.price} ₽`}
+                {isLoading ? 'Обработка...' : `Оплатить ${selectedPlan.id === 'pro' 
+                  ? (selectedPeriod === 'year' ? YEARLY_PRICE : selectedPlan.price)
+                  : 0} ₽`}
               </Button>
             </div>
           )}
