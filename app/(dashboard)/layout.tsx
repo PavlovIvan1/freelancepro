@@ -35,7 +35,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-border">
             <span className="font-semibold text-foreground">Freelio</span>
             <div className="relative group">
-              <button className="flex items-center gap-2 p-1.5 rounded-full bg-foreground text-background hover:opacity-90 transition-opacity">
+              <button className="flex items-center gap-2 p-1.5 rounded-full bg-foreground text-background hover:opacity-80 transition-opacity">
                 <User className="w-4 h-4" />
               </button>
               {/* Dropdown */}

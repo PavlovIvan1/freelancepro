@@ -176,7 +176,7 @@ export default function ProfilePage() {
             <button
               onClick={() => setBillingPeriod('month')}
               className={cn(
-                "px-4 py-2 rounded-md text-sm font-medium transition-all",
+                "px-4 py-2 rounded-md text-sm font-medium transition-all hover:bg-background/50",
                 billingPeriod === 'month' 
                   ? "bg-background shadow-sm text-foreground" 
                   : "text-muted-foreground hover:text-foreground"
@@ -187,7 +187,7 @@ export default function ProfilePage() {
             <button
               onClick={() => setBillingPeriod('year')}
               className={cn(
-                "px-4 py-2 rounded-md text-sm font-medium transition-all",
+                "px-4 py-2 rounded-md text-sm font-medium transition-all hover:bg-background/50",
                 billingPeriod === 'year' 
                   ? "bg-background shadow-sm text-foreground" 
                   : "text-muted-foreground hover:text-foreground"
@@ -210,7 +210,10 @@ export default function ProfilePage() {
             const originalPrice = plan.id === 'pro' && billingPeriod === 'year' ? 5880 : null
             
             return (
-              <Card key={plan.id} className={currentPlan?.id === plan.id ? 'border-primary' : ''}>
+              <Card key={plan.id} className={cn(
+                currentPlan?.id === plan.id ? 'border-primary' : '',
+                'transition-all hover:shadow-md hover:border-foreground/20'
+              )}>
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg">{plan.name}</CardTitle>
@@ -243,7 +246,10 @@ export default function ProfilePage() {
                   {currentPlan?.id !== plan.id && (
                     <Button 
                       variant={plan.id === 'pro' ? 'default' : 'outline'} 
-                      className="w-full"
+                      className={cn(
+                        "w-full transition-all hover:opacity-90",
+                        plan.id === 'pro' && 'hover:opacity-80'
+                      )}
                       onClick={() => handlePayment({...plan, price: displayPrice, interval: displayInterval})}
                       disabled={plan.price === 0}
                     >
